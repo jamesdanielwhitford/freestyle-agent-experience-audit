@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 1</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 1/1</h1>
+        
+
+<div class="pagination"><a href="index.html" class="index-link">Index</a></div>
+
+        
+<div class="message user" id="msg-2026-04-07T12-05-13-918Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-07T12-05-13-918Z" class="timestamp-link"><time datetime="2026-04-07T12:05:13.918Z" data-timestamp="2026-04-07T12:05:13.918Z">2026-04-07T12:05:13.918Z</time></a></div><div class="message-content">
+<div class="user-content"><p>What platforms support running AI agents in VMs with an MCP server interface?</p></div></div></div>
+<div class="message assistant" id="msg-2026-04-07T12-05-20-253Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-07T12-05-20-253Z" class="timestamp-link"><time datetime="2026-04-07T12:05:20.253Z" data-timestamp="2026-04-07T12:05:20.253Z">2026-04-07T12:05:20.253Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01Jxf2weMVBJAqP4Ew3nAFxn"><div class="tool-header"><span class="tool-icon">⚙</span> Agent</div><div class="tool-description">Research AI agent VM platforms with MCP</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;subagent_type&#34;: &#34;claude-code-guide&#34;,
+  &#34;prompt&#34;: &#34;Research and summarize: what platforms or products support running AI agents in virtual machines (VMs) with an MCP (Model Context Protocol) server interface? I&#39;m looking for concrete platforms, products, or projects that offer this capability. Include both commercial and open-source options. Focus on what&#39;s available as of early 2026.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-07T12-05-26-575Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-07T12-05-26-575Z" class="timestamp-link"><time datetime="2026-04-07T12:05:26.575Z" data-timestamp="2026-04-07T12:05:26.575Z">2026-04-07T12:05:26.575Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>I need to request permission to use web search to answer your question. Your Claude Code environment is running in &quot;don&#x27;t ask&quot; mode for web search, which requires explicit approval.
+
+**What I&#x27;m trying to do:** Research concrete platforms and products that support running AI agents in virtual machines with MCP server interfaces. This is a research task that requires current information beyond my training data (which cuts off in February 2025).
+
+**Why I need this permission:** To provide accurate, up-to-date information about:
+- Commercial platforms offering VM-based agent deployment with MCP
+- Open-source projects implementing this architecture
+- Specific products available as of early 2026
+- Concrete examples and use cases
+
+Would you like me to enable web search for this session so I can gather this information for you? You can do this via `/update-config` or I can proceed with what I know from my training data (though it may be incomplete for 2026).</pre><pre>agentId: ad5b35031e0160bda (use SendMessage with to: &#x27;ad5b35031e0160bda&#x27; to continue this agent)
+&lt;usage&gt;total_tokens: 9421
+tool_uses: 4
+duration_ms: 6315&lt;/usage&gt;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-07T12-05-32-063Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-07T12-05-32-063Z" class="timestamp-link"><time datetime="2026-04-07T12:05:32.063Z" data-timestamp="2026-04-07T12:05:32.063Z">2026-04-07T12:05:32.063Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01BZE4u9k9DvX6BS2Q3YUETZ"><div class="tool-header"><span class="tool-icon">⚙</span> Agent</div><div class="tool-description">Web search AI agents VMs MCP platforms</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;subagent_type&#34;: &#34;general-purpose&#34;,
+  &#34;prompt&#34;: &#34;Search the web for: what platforms support running AI agents in VMs (virtual machines) with an MCP (Model Context Protocol) server interface? I want a concise list of concrete platforms, products, or projects — commercial and open-source — that offer this. Focus on what&#39;s available as of early 2026. Use WebSearch to find current information.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-07T12-06-51-667Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-07T12-06-51-667Z" class="timestamp-link"><time datetime="2026-04-07T12:06:51.667Z" data-timestamp="2026-04-07T12:06:51.667Z">2026-04-07T12:06:51.667Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Here is a concise list of concrete platforms, products, and projects that support running AI agents in VMs with an MCP server interface, as of early 2026:
+
+---
+
+## Dedicated AI Agent VM/Sandbox Platforms with MCP
+
+**E2B**
+The most prominent purpose-built option. Runs isolated microVMs via Firecracker (the same tech under AWS Lambda). Has an official MCP server, direct access to Docker&#x27;s MCP Catalog (200+ tools), and is used by roughly half of Fortune 500 companies for agent workloads. Open-source core (Apache-2.0), with a commercial cloud offering.
+- [e2b.dev](https://e2b.dev/) | [GitHub](https://github.com/e2b-dev)
+
+**Daytona**
+Pivoted to AI agent infrastructure in early 2025. Provides sub-90ms (sometimes 27ms) sandbox provisioning, supports full Linux/Windows/macOS virtual desktops for computer-use agents, and has an official MCP server implementation for executing AI-generated code. Raised a $24M Series A in February 2026.
+- [Daytona blog comparison](https://blaxel.ai/blog/daytona-dev-environment-pricing-alternatives)
+
+**Blaxel**
+YC Spring 2025. Runs agents in micro-VMs that resume in under 25ms, co-locates agent APIs with sandboxes, and positions itself explicitly for agentic workloads.
+- [Northflank on Blaxel alternatives](https://northflank.com/blog/top-blaxel-alternatives-for-ai-sandbox-and-agent-infrastructure)
+
+**agent-infra/sandbox** (open source)
+An all-in-one sandbox combining Browser, Shell, File, MCP, and VSCode Server in a single Docker container, with MCP-compatible APIs for agent integration.
+- [GitHub](https://github.com/agent-infra/sandbox)
+
+---
+
+## Container/MicroVM Runtimes with MCP Support
+
+**Docker Desktop + Docker Sandboxes**
+Docker Desktop 4.58 (January 2026) gives each agent a microVM via the native hypervisor with its own private Docker daemon. Docker&#x27;s MCP Catalog lists 200+ servers. Partnered directly with E2B.
+- [Docker + E2B announcement](https://www.docker.com/blog/docker-e2b-building-the-future-of-trusted-ai/)
+
+**Lima v2.0** (open source)
+Added GPU acceleration and an MCP server that lets AI agents safely operate inside Linux VMs on macOS.
+
+---
+
+## Major Cloud Platforms with Managed MCP + VM Execution
+
+**AWS Bedrock AgentCore**
+Released October 2025. Managed MCP server deployment on AWS infrastructure, with IAM-secured API access. AWS also ships official MCP servers for EC2, MSK, and other services.
+- [AgentCore MCP deployment guide](https://vogla.com/agentcore-mcp-server-deployment-aws-mcp/) | [AWS MCP servers GitHub](https://github.com/awslabs/mcp)
+
+**Google Cloud Managed MCP**
+Launched December 2025. Fully managed MCP servers for Google services including BigQuery, Cloud SQL, Spanner, AlloyDB, and Google Maps. Cloud Run and Agent Engine can host agent workloads.
+- [Google Cloud MCP announcement](https://cloud.google.com/blog/products/ai-machine-learning/announcing-official-mcp-support-for-google-services)
+
+**Azure Functions MCP Support**
+Released January 2026. MCP extension for Azure Functions (.NET, Java, JS, Python, TypeScript) with OBO authentication and streamable HTTP transport. Includes a self-hosted option.
+- [InfoQ: Azure Functions MCP](https://www.infoq.com/news/2026/01/azure-functions-mcp-support/)
+
+**Microsoft Azure Foundry MCP Server**
+Previewed December 2025. Cloud-hosted MCP server specifically for AI agent development workflows.
+- [Visual Studio Magazine](https://visualstudiomagazine.com/articles/2025/12/04/microsoft-previews-cloud-hosted-foundry-mcp-server-for-ai-agent-development.aspx)
+
+---
+
+## MCP Gateway/Orchestration Layer (sits in front of VM-hosted MCP servers)
+
+**Obot MCP Gateway**
+Provides enterprise access control, cataloging, and governance over which MCP servers are exposed to agents. Works with VS Code, GitHub Copilot, and MCP-registry-enabled platforms.
+- [obot.ai](https://obot.ai/)
+
+---
+
+**Summary:** The clearest VM-native + MCP combinations as of early 2026 are E2B (Firecracker microVMs, explicit MCP server), Daytona (sub-100ms VMs, MCP server), and Blaxel (standby micro-VMs). The three major clouds (AWS, Google, Azure) now offer managed MCP server hosting, though these are more &quot;cloud function&quot; style than full VM environments. Docker Desktop brings microVM isolation to local dev. Lima v2.0 covers the macOS-local VM + MCP case.
+
+Sources:
+- [E2B - The Enterprise AI Agent Cloud](https://e2b.dev/)
+- [E2B GitHub](https://github.com/e2b-dev)
+- [agent-infra/sandbox GitHub](https://github.com/agent-infra/sandbox)
+- [Docker + E2B: Building the Future of Trusted AI](https://www.docker.com/blog/docker-e2b-building-the-future-of-trusted-ai/)
+- [AgentCore MCP Server Deployment Guide](https://vogla.com/agentcore-mcp-server-deployment-aws-mcp/)
+- [AWS MCP Servers GitHub](https://github.com/awslabs/mcp)
+- [Google Cloud Managed MCP - InfoQ](https://www.infoq.com/news/2025/12/google-cloud-managed-mcp/)
+- [Google Cloud official MCP support announcement](https://cloud.google.com/blog/products/ai-machine-learning/announcing-official-mcp-support-for-google-services)
+- [Azure Functions MCP Support - InfoQ](https://www.infoq.com/news/2026/01/azure-functions-mcp-support/)
+- [Microsoft Azure Foundry MCP Server - Visual Studio Magazine](https://visualstudiomagazine.com/articles/2025/12/04/microsoft-previews-cloud-hosted-foundry-mcp-server-for-ai-agent-development.aspx)
+- [Obot MCP Gateway](https://obot.ai/)
+- [Daytona vs Blaxel alternatives](https://blaxel.ai/blog/daytona-dev-environment-pricing-alternatives)
+- [Northflank on Blaxel alternatives](https://northflank.com/blog/top-blaxel-alternatives-for-ai-sandbox-and-agent-infrastructure)
+- [AI Code Sandbox Benchmark 2026 - Superagent](https://www.superagent.sh/blog/ai-code-sandbox-benchmark-2026)
+- [How to sandbox AI agents in 2026](https://manveerc.substack.com/p/ai-agent-sandboxing-guide)</pre><pre>agentId: a5f1aa6e4f8666e38 (use SendMessage with to: &#x27;a5f1aa6e4f8666e38&#x27; to continue this agent)
+&lt;usage&gt;total_tokens: 19871
+tool_uses: 7
+duration_ms: 79600&lt;/usage&gt;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-07T12-07-03-294Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-07T12-07-03-294Z" class="timestamp-link"><time datetime="2026-04-07T12:07:03.294Z" data-timestamp="2026-04-07T12:07:03.294Z">2026-04-07T12:07:03.294Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Here's a breakdown of platforms that support running AI agents in VMs with an MCP server interface:</p>
+<h2>Purpose-built VM sandboxes with MCP</h2>
+<p><strong>E2B</strong> — The most prominent option. Uses Firecracker microVMs, has an official MCP server, and integrates with Docker's MCP Catalog (200+ tools). Open-source core, commercial cloud offering.</p>
+<p><strong>Daytona</strong> — Pivoted to agent infra in early 2025. Sub-90ms VM provisioning, full Linux/Windows/macOS desktop support for computer-use agents, official MCP server.</p>
+<p><strong>Blaxel</strong> — YC Spring 2025. Micro-VMs that resume in under 25ms, co-located with agent APIs.</p>
+<p><strong>agent-infra/sandbox</strong> — Open source. Combines Browser, Shell, File, MCP, and VSCode Server in a single Docker container with MCP-compatible APIs.</p>
+<h2>Container/VM runtimes with MCP support</h2>
+<p><strong>Docker Desktop 4.58</strong> (January 2026) — Per-agent microVMs via native hypervisor, with Docker's MCP Catalog.</p>
+<p><strong>Lima v2.0</strong> — Open source, macOS-local Linux VMs with an MCP server and GPU acceleration.</p>
+<h2>Major cloud platforms</h2>
+<p><strong>AWS Bedrock AgentCore</strong> (October 2025) — Managed MCP server deployment on AWS infrastructure with IAM auth.</p>
+<p><strong>Google Cloud Managed MCP</strong> (December 2025) — Fully managed MCP servers for BigQuery, Cloud SQL, Spanner, Cloud Run agent hosting.</p>
+<p><strong>Azure Functions MCP</strong> (January 2026) — MCP extension across .NET, Java, JS, Python, TypeScript with self-hosted option.</p>
+<hr />
+<p>The clearest true VM + MCP combinations are <strong>E2B</strong>, <strong>Daytona</strong>, and <strong>Blaxel</strong>. The major clouds lean more toward managed function execution rather than full VM environments.</p></div></div></div>
+<div class="message user" id="msg-2026-04-07T12-07-07-815Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-07T12-07-07-815Z" class="timestamp-link"><time datetime="2026-04-07T12:07:07.815Z" data-timestamp="2026-04-07T12:07:07.815Z">2026-04-07T12:07:07.815Z</time></a></div><div class="message-content">
+<div class="user-content"><p><local-command-caveat>Caveat: The messages below were generated by the user while running local commands. DO NOT respond to these messages or otherwise consider them in your response unless the user explicitly asks you to.</local-command-caveat></p></div></div></div>
+<div class="message user" id="msg-2026-04-07T12-07-07-814Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-07T12-07-07-814Z" class="timestamp-link"><time datetime="2026-04-07T12:07:07.814Z" data-timestamp="2026-04-07T12:07:07.814Z">2026-04-07T12:07:07.814Z</time></a></div><div class="message-content">
+<div class="user-content"><p><command-name>/copy</command-name>
+            <command-message>copy</command-message>
+            <command-args></command-args></p></div></div></div>
+<div class="message user" id="msg-2026-04-07T12-07-07-814Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-07T12-07-07-814Z" class="timestamp-link"><time datetime="2026-04-07T12:07:07.814Z" data-timestamp="2026-04-07T12:07:07.814Z">2026-04-07T12:07:07.814Z</time></a></div><div class="message-content">
+<div class="user-content"><p><local-command-stdout>Copied to clipboard (1565 characters, 29 lines)
+Also written to /tmp/claude/response.md</local-command-stdout></p></div></div></div>
+        
+
+<div class="pagination"><a href="index.html" class="index-link">Index</a></div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>
