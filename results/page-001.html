@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 1</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 1/1</h1>
+        
+
+<div class="pagination"><a href="index.html" class="index-link">Index</a></div>
+
+        
+<div class="message user" id="msg-2026-04-07T12-16-48-974Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-07T12-16-48-974Z" class="timestamp-link"><time datetime="2026-04-07T12:16:48.974Z" data-timestamp="2026-04-07T12:16:48.974Z">2026-04-07T12:16:48.974Z</time></a></div><div class="message-content">
+<div class="user-content"><p>What are some less well-known or newer sandbox platforms for running code in the cloud?</p></div></div></div>
+<div class="message assistant" id="msg-2026-04-07T12-16-53-952Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-07T12-16-53-952Z" class="timestamp-link"><time datetime="2026-04-07T12:16:53.952Z" data-timestamp="2026-04-07T12:16:53.952Z">2026-04-07T12:16:53.952Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_019j6Q8sQK6rRRtdGJM1EYor"><div class="tool-header"><span class="tool-icon">⚙</span> Agent</div><div class="tool-description">Research cloud sandbox platforms</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;subagent_type&#34;: &#34;claude-code-guide&#34;,
+  &#34;prompt&#34;: &#34;Research less well-known or newer sandbox platforms for running code in the cloud. Focus on platforms that are not the obvious mainstream ones (not AWS Lambda, Google Cloud Run, Azure Functions, Replit, CodeSandbox, or GitHub Codespaces). Look for newer entrants, niche tools, or platforms that have gained traction in the last 2-3 years. Include details like what makes each one distinctive, pricing model if known, and use cases. Cover at least 8-10 platforms. Use web search to find current information.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-07T12-17-00-164Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-07T12-17-00-164Z" class="timestamp-link"><time datetime="2026-04-07T12:17:00.164Z" data-timestamp="2026-04-07T12:17:00.164Z">2026-04-07T12:17:00.164Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>I need to enable web search permission to fulfill your request. Web search is currently disabled in &quot;don&#x27;t ask mode&quot; for this session. 
+
+To research emerging and niche cloud code sandbox platforms with current information (pricing, features, recent developments), I need permission to search the web. This is essential because:
+
+1. You&#x27;re asking for platforms that have emerged in the last 2-3 years (2023-2026)
+2. You want current details like pricing models and recent traction
+3. My training data has a February 2025 cutoff, so newer platforms and recent updates require live web searches
+
+**Would you like me to enable web search?** I can do this by running:
+```bash
+claude config set webSearchEnabled true
+```
+
+Once enabled, I&#x27;ll search for detailed information on platforms like E2B, Pockly, Livecycle, Deno Deploy, Supabase Edge Functions, Modal, Replicate, Together AI, and other emerging alternatives to the mainstream options.</pre><pre>agentId: a0e14eb49018e3b4b (use SendMessage with to: &#x27;a0e14eb49018e3b4b&#x27; to continue this agent)
+&lt;usage&gt;total_tokens: 9712
+tool_uses: 5
+duration_ms: 6208&lt;/usage&gt;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-07T12-17-04-768Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-07T12-17-04-768Z" class="timestamp-link"><time datetime="2026-04-07T12:17:04.768Z" data-timestamp="2026-04-07T12:17:04.768Z">2026-04-07T12:17:04.768Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01FJ3Qvp7DjyGvZ4kxa94sYR"><div class="tool-header"><span class="tool-icon">⚙</span> Agent</div><div class="tool-description">Research cloud sandbox platforms via web</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;subagent_type&#34;: &#34;general-purpose&#34;,
+  &#34;prompt&#34;: &#34;Search the web for less well-known or newer sandbox platforms for running code in the cloud. I want to know about platforms that are NOT the mainstream ones like AWS Lambda, Google Cloud Run, Azure Functions, Replit, CodeSandbox, or GitHub Codespaces. \n\nFocus on:\n- Newer entrants (2022-2026)\n- Niche or specialized platforms\n- AI-focused code execution sandboxes\n- Developer tool platforms\n\nFor each, describe what makes it distinctive, its primary use case, and pricing model if available. Aim for 8-10 platforms. Please do actual web searches to find current info.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-07T12-20-47-197Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-07T12-20-47-197Z" class="timestamp-link"><time datetime="2026-04-07T12:20:47.197Z" data-timestamp="2026-04-07T12:20:47.197Z">2026-04-07T12:20:47.197Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>I now have enough information to give a comprehensive, well-sourced answer. Here it is:
+
+---
+
+Here are 10 lesser-known or newer cloud code sandbox platforms worth knowing about, focused on the 2022-2026 window:
+
+---
+
+**1. E2B (e2b.dev)**
+Founded around 2023, E2B is purpose-built for AI agents executing untrusted code. It uses Firecracker microVMs (the same hypervisor technology behind AWS Lambda internals) giving genuine kernel-level isolation with roughly 150ms cold starts. Its main differentiator is developer ergonomics: polished Python and JavaScript SDKs that treat the sandbox as a programmable object, with a fine-grained filesystem API and open-source core. It went from 40,000 sandbox sessions/month in early 2024 to around 15 million/month by early 2025, which signals genuine traction in the LLM tooling space. Pricing: free hobby tier with $100 credit, Pro at $150/month with 24-hour session limits and 20 concurrent sandboxes. Hosted rate roughly $0.000028/CPU/second.
+
+---
+
+**2. Daytona**
+Originally a dev environment product, Daytona pivoted hard to AI agent infrastructure in early 2025 after the coding agent wave hit. Its headline claim is sub-90ms sandbox creation latency, faster than any microVM-based competitor. It includes built-in Git and LSP support and a Python SDK with live stdout/stderr streaming, aimed at eval pipelines and coding agents. Isolation is Docker-based by default (weaker than microVMs but faster). Raised a $24M Series A in February 2026. Pricing: $0.067/hr for 1 vCPU / 1 GiB, $200 in free credits to start, with a startup program offering up to $50k in credits.
+
+---
+
+**3. Morph Cloud (morph.so)**
+Morph Cloud&#x27;s distinctive concept is &quot;infinibranch&quot; sandboxes: you can snapshot a running environment mid-execution and branch from it instantly, similar to how git branches from a commit. This is especially useful for AI agents that need to explore multiple execution paths in parallel without re-running setup steps. Supports burst scalability for concurrent agent workloads. The architecture gives each sandbox its own isolated filesystem, network stack, and process tree. Relatively new entrant (2024-2025), positioning is explicitly for AI coding agents, code review bots, and automated testing pipelines.
+
+---
+
+**4. Modal (modal.com)**
+Modal is Python-first serverless compute that has evolved into a legitimate sandbox platform for AI workflows. You define a container image in Python code and launch functions inside it with sub-second cold starts. The platform scales to 10,000+ concurrent containers. Unlike most sandbox-specific platforms, Modal has strong GPU support (H100s, A100s), making it useful for ML inference + code execution in one platform. gVisor isolation. Pricing: $0.0000131/CPU/second, with $30/month in free credits on the Starter plan. Team plan is $250/month with $100 credit and 50 GPU concurrency slots.
+
+---
+
+**5. Cloudflare Dynamic Workers**
+Launched into open beta in April 2026, Dynamic Workers allow a Cloudflare Worker to instantiate another Worker at runtime with code specified on the fly, each in its own isolate. Uses V8 isolates rather than microVMs, which means startup in a few milliseconds (roughly 100x faster than containers) but a narrower security surface than hypervisor isolation. Cloudflare patches V8 vulnerabilities to production within hours as mitigation. Execution is constrained to JavaScript/TypeScript but runs across Cloudflare&#x27;s global edge network. Pricing: $0.002 per unique Worker loaded per day (waived during beta), plus standard Workers CPU and invocation charges. No limits on concurrent sandboxes.
+
+---
+
+**6. Together AI Code Sandbox**
+Together AI, primarily known as a GPU inference provider, added a Code Sandbox product that integrates VM-based execution directly with their LLM API. The distinguishing angle is co-location: your agent calls an LLM and executes code on the same platform, reducing latency and simplifying billing. Supports Dev Containers for configuring custom setups including databases and servers. VM snapshot/resume in ~500ms. Pricing: VM credits at $0.01486/credit (credits denominate vCPU-hours), Code Interpreter sessions at $0.03/60-minute session.
+
+---
+
+**7. Blaxel (blaxel.ai)**
+Came out of Y Combinator&#x27;s Spring 2025 batch. Blaxel&#x27;s core thesis is that standby latency matters as much as cold-start latency for agent workloads: sandboxes sit on standby indefinitely and resume in under 25ms. The architecture uses a read-only base filesystem (EROFS) with in-memory writable layers (tmpfs via OverlayFS), preserving the full memory state of running processes. Also includes built-in MCP server integration and REST APIs for filesystem and process management, designed to work with tool-calling agents directly. Scales to zero when idle. Pricing is memory-and-storage based rather than per-CPU-second.
+
+---
+
+**8. Vercel Sandboxes (Beta)**
+Vercel launched a beta sandbox product using Firecracker microVMs, tightly integrated into the Vercel deployment ecosystem. Notably, you only pay for active CPU time, not wall-clock time, which can be significantly cheaper for bursty agent workloads. Currently limited to Node.js and Python, single US East region, and session durations of 45 minutes to 5 hours. Pricing: Hobby tier includes 5 free CPU-hours/month, Pro at $0.128/CPU-hour. Beta status means constraints, but the Vercel distribution channel is large.
+
+---
+
+**9. Northflank**
+Northflank is a broader developer platform (containers, jobs, databases) that added purpose-built sandbox infrastructure. Its differentiator is bring-your-own-cloud (BYOC): you can run sandboxes inside your own AWS, GCP, or Azure account under your VPC, which matters for compliance-heavy use cases. Supports Kata Containers and gVisor microVM isolation, configurable persistence, and sandboxes that can run indefinitely (no 24-hour caps). Pricing: $0.01667/vCPU-hr, $0.00833/GB-hr, with H100 GPU at $2.74/hr all-inclusive. Reports processing 2M+ isolated workloads monthly.
+
+---
+
+**10. Lifo (lifo.sh)**
+The most unusual entry: Lifo is a JavaScript library that provides a Linux-like OS environment running entirely inside the browser, with no cloud infrastructure at all. It maps familiar Unix interfaces to browser APIs: a virtual filesystem backed by IndexedDB, a Bash-like shell with pipes and redirects, 58+ built-in Unix commands, and Node.js compatibility shims. Boot time is ~0ms since there is no VM to start. The use case is AI agents that need sandboxed code execution embedded in a web app without incurring server costs per execution. Pricing: MIT-licensed, completely free, $0 infrastructure cost.
+
+---
+
+**Honorable Mention: Beam Cloud (beam.cloud)**
+Beam pitches itself as AI infrastructure for developers with sandbox support for untrusted code at scale, including custom Docker images and GPU support. Open-source core (beta9 on GitHub). Aimed at inference pipelines and background jobs as well as sandboxing.
+
+---
+
+Sources:
+- [E2B | The Enterprise AI Agent Cloud](https://e2b.dev/)
+- [Top AI Code Sandbox Products in 2025 | Modal](https://modal.com/blog/top-code-agent-sandbox-products)
+- [Top AI sandbox platforms in 2026, ranked | Northflank](https://northflank.com/blog/top-ai-sandbox-platforms-for-code-execution)
+- [Infinibranch Sandboxes: Truly Elastic Code Execution for AI | Morph](https://www.morph.so/blog/sandbox-sdk-morph-cloud)
+- [Daytona vs E2B in 2026 | Northflank](https://northflank.com/blog/daytona-vs-e2b-ai-code-execution-sandboxes)
+- [Sandboxing AI agents, 100x faster | Cloudflare Blog](https://blog.cloudflare.com/dynamic-workers/)
+- [Cloudflare Dynamic Workers Open Beta | InfoQ](https://www.infoq.com/news/2026/04/cloudflare-dynamic-workers-beta/)
+- [Together Code Sandbox | Together AI](https://www.together.ai/sandbox)
+- [Introducing Together Code Sandbox | Together AI Blog](https://www.together.ai/blog/code-sandbox-code-interpreter)
+- [Blaxel Sandboxes Documentation](https://docs.blaxel.ai/Sandboxes/Overview)
+- [Lifo: Browser-Native OS for AI Sandboxing](https://lifo.sh)
+- [AI Infrastructure For Developers | Beam Cloud](https://www.beam.cloud/)
+- [Open-Source Alternatives to E2B | Beam Blog](https://www.beam.cloud/blog/best-e2b-alternatives)
+- [11 Best Sandbox Runners in 2026 | Better Stack](https://betterstack.com/community/comparisons/best-sandbox-runners/)
+- [E2B vs Modal vs Fly.io: Code Execution Sandbox Comparison | Athenic Blog](https://getathenic.com/blog/e2b-vs-modal-vs-flyio-sandbox-comparison)</pre><pre>agentId: a514089d3b29a0c5c (use SendMessage with to: &#x27;a514089d3b29a0c5c&#x27; to continue this agent)
+&lt;usage&gt;total_tokens: 28981
+tool_uses: 19
+duration_ms: 222427&lt;/usage&gt;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-07T12-21-06-868Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-07T12-21-06-868Z" class="timestamp-link"><time datetime="2026-04-07T12:21:06.868Z" data-timestamp="2026-04-07T12:21:06.868Z">2026-04-07T12:21:06.868Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Here's a rundown of less well-known or newer cloud code sandbox platforms:</p>
+<hr />
+<p><strong>1. E2B (e2b.dev)</strong>
+Purpose-built for AI agents running untrusted code. Uses Firecracker microVMs (~150ms cold starts), polished Python/JS SDKs, and open-source core. Grew from 40K to 15M sandbox sessions/month by early 2025. Free tier + $150/month Pro plan.</p>
+<p><strong>2. Daytona</strong>
+Pivoted to AI agent infrastructure in 2025. Claims sub-90ms sandbox creation (Docker-based). Built-in Git and LSP support, live stdout/stderr streaming. Raised a $24M Series A in early 2026. Starts with $200 in free credits.</p>
+<p><strong>3. Morph Cloud (morph.so)</strong>
+Introduces "infinibranch" sandboxes: snapshot a running environment mid-execution and branch from it instantly, like git branches. Ideal for AI agents exploring multiple execution paths without re-running setup. 2024-2025 entrant.</p>
+<p><strong>4. Modal (modal.com)</strong>
+Python-first serverless compute with strong GPU support (H100s, A100s). Sub-second cold starts, scales to 10K+ concurrent containers. Good for ML inference and code execution combined. $30/month free credits on Starter.</p>
+<p><strong>5. Cloudflare Dynamic Workers</strong>
+Open beta as of April 2026. Instantiate a Worker from within a Worker at runtime, each in its own V8 isolate. Millisecond startup, runs at Cloudflare's global edge. Constrained to JS/TS but extremely fast. Free during beta.</p>
+<p><strong>6. Together AI Code Sandbox</strong>
+GPU inference provider that added VM-based code execution co-located with their LLM API. Reduces latency by running model calls and code execution on the same platform. Snapshot/resume in ~500ms.</p>
+<p><strong>7. Blaxel (blaxel.ai)</strong>
+YC Spring 2025 batch. Standby sandboxes resume in under 25ms (vs. typical cold-start focus). Uses EROFS + tmpfs OverlayFS to preserve running process state. Built-in MCP server integration for tool-calling agents.</p>
+<p><strong>8. Vercel Sandboxes (Beta)</strong>
+Firecracker-based, tightly integrated with Vercel deployments. Unique billing: pay only for active CPU time, not wall-clock time. Currently Node.js and Python only, single US region, 45min-5hr sessions. 5 free CPU-hours/month on Hobby.</p>
+<p><strong>9. Northflank</strong>
+Broader platform with sandbox infrastructure that supports bring-your-own-cloud (run sandboxes inside your own AWS/GCP/Azure VPC). Supports Kata Containers and gVisor, no 24-hour session caps. Good for compliance-heavy use cases.</p>
+<p><strong>10. Lifo (lifo.sh)</strong>
+The odd one out: a JavaScript library providing a Linux-like OS running entirely in the browser, no cloud infrastructure at all. Virtual filesystem backed by IndexedDB, 58+ Unix commands, Node.js shims. ~0ms "boot time". MIT licensed, free.</p>
+<p><strong>Honorable mention: Beam Cloud (beam.cloud)</strong>
+Open-source core (beta9 on GitHub), custom Docker images, GPU support, aimed at inference pipelines and background jobs alongside sandboxing.</p>
+<hr />
+<p>The main trend driving most of these is AI coding agents needing fast, isolated, programmable execution environments. E2B, Daytona, and Morph Cloud are the most directly focused on that niche.</p></div></div></div>
+<div class="message user" id="msg-2026-04-07T12-21-09-334Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-07T12-21-09-334Z" class="timestamp-link"><time datetime="2026-04-07T12:21:09.334Z" data-timestamp="2026-04-07T12:21:09.334Z">2026-04-07T12:21:09.334Z</time></a></div><div class="message-content">
+<div class="user-content"><p><local-command-caveat>Caveat: The messages below were generated by the user while running local commands. DO NOT respond to these messages or otherwise consider them in your response unless the user explicitly asks you to.</local-command-caveat></p></div></div></div>
+<div class="message user" id="msg-2026-04-07T12-21-09-333Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-07T12-21-09-333Z" class="timestamp-link"><time datetime="2026-04-07T12:21:09.333Z" data-timestamp="2026-04-07T12:21:09.333Z">2026-04-07T12:21:09.333Z</time></a></div><div class="message-content">
+<div class="user-content"><p><command-name>/copy</command-name>
+            <command-message>copy</command-message>
+            <command-args></command-args></p></div></div></div>
+<div class="message user" id="msg-2026-04-07T12-21-09-333Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-07T12-21-09-333Z" class="timestamp-link"><time datetime="2026-04-07T12:21:09.333Z" data-timestamp="2026-04-07T12:21:09.333Z">2026-04-07T12:21:09.333Z</time></a></div><div class="message-content">
+<div class="user-content"><p><local-command-stdout>Copied to clipboard (2989 characters, 40 lines)
+Also written to /tmp/claude/response.md</local-command-stdout></p></div></div></div>
+        
+
+<div class="pagination"><a href="index.html" class="index-link">Index</a></div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>
