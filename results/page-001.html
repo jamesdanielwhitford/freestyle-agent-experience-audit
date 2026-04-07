@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 1</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 1/2</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<span class="disabled">&larr; Prev</span>
+<span class="current">1</span>
+<a href="page-002.html">2</a>
+<a href="page-002.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-04-07T11-57-38-701Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-07T11-57-38-701Z" class="timestamp-link"><time datetime="2026-04-07T11:57:38.701Z" data-timestamp="2026-04-07T11:57:38.701Z">2026-04-07T11:57:38.701Z</time></a></div><div class="message-content">
+<div class="user-content"><p>What sandbox providers let you fork a running VM? Like, duplicate it mid-execution?</p></div></div></div>
+<div class="message assistant" id="msg-2026-04-07T11-57-51-036Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-07T11-57-51-036Z" class="timestamp-link"><time datetime="2026-04-07T11:57:51.036Z" data-timestamp="2026-04-07T11:57:51.036Z">2026-04-07T11:57:51.036Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>A few providers support VM/sandbox forking (snapshotting mid-execution and branching from that state):</p>
+<p><strong>Cloud/VM platforms</strong></p>
+<ul>
+<li><strong>Firecracker</strong> (AWS) - supports snapshots of microVMs mid-execution; used internally by Lambda. You can restore multiple instances from the same snapshot, effectively forking.</li>
+<li><strong>QEMU/KVM</strong> - <code>savevm</code>/<code>loadvm</code> commands snapshot running VMs; you can restore the same snapshot multiple times to get parallel forks.</li>
+<li><strong>Vagrant</strong> - snapshot support via <code>vagrant snapshot save/restore</code>, works with VirtualBox and VMware backends.</li>
+</ul>
+<p><strong>Sandbox-specific</strong></p>
+<ul>
+<li><strong>gVisor</strong> - supports checkpointing (CRIU-based), though forking from a checkpoint is more manual.</li>
+<li><strong>Kata Containers</strong> - built on Firecracker/QEMU, inherits their snapshot capabilities.</li>
+<li><strong>CRIU</strong> (Checkpoint/Restore in Userspace) - Linux tool for checkpointing processes or containers mid-execution and restoring multiple copies.</li>
+</ul>
+<p><strong>Higher-level / hosted</strong></p>
+<ul>
+<li><strong>Modal</strong> - supports snapshotting container state for fast cold starts, though forking for parallel execution isn't a first-class API.</li>
+<li><strong>E2B</strong> - sandboxes are designed for short-lived execution; no native fork/clone API.</li>
+<li><strong>Dagger</strong> - pipeline execution with layer caching, not true VM forking but reuses cached states.</li>
+</ul>
+<p><strong>Best fit depends on your use case:</strong>
+- True parallel VM forking from a snapshot: QEMU/KVM or Firecracker
+- Process-level forking on Linux: CRIU
+- Hosted/managed with snapshot semantics: Modal is closest</p>
+<p>What's the use case? That would help narrow it down.</p></div></div></div>
+<div class="message user" id="msg-2026-04-07T11-58-09-711Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-07T11-58-09-711Z" class="timestamp-link"><time datetime="2026-04-07T11:58:09.711Z" data-timestamp="2026-04-07T11:58:09.711Z">2026-04-07T11:58:09.711Z</time></a></div><div class="message-content">
+<div class="user-content"><p><local-command-caveat>Caveat: The messages below were generated by the user while running local commands. DO NOT respond to these messages or otherwise consider them in your response unless the user explicitly asks you to.</local-command-caveat></p></div></div></div>
+<div class="message user" id="msg-2026-04-07T11-58-09-711Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-07T11-58-09-711Z" class="timestamp-link"><time datetime="2026-04-07T11:58:09.711Z" data-timestamp="2026-04-07T11:58:09.711Z">2026-04-07T11:58:09.711Z</time></a></div><div class="message-content">
+<div class="user-content"><p><command-name>/copy</command-name>
+            <command-message>copy</command-message>
+            <command-args></command-args></p></div></div></div>
+<div class="message user" id="msg-2026-04-07T11-58-09-711Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-07T11-58-09-711Z" class="timestamp-link"><time datetime="2026-04-07T11:58:09.711Z" data-timestamp="2026-04-07T11:58:09.711Z">2026-04-07T11:58:09.711Z</time></a></div><div class="message-content">
+<div class="user-content"><p><local-command-stdout>Copied to clipboard (1528 characters, 26 lines)
+Also written to /tmp/claude/response.md</local-command-stdout></p></div></div></div>
+<div class="message user" id="msg-2026-04-07T11-58-21-052Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-07T11-58-21-052Z" class="timestamp-link"><time datetime="2026-04-07T11:58:21.052Z" data-timestamp="2026-04-07T11:58:21.052Z">2026-04-07T11:58:21.052Z</time></a></div><div class="message-content">
+<div class="user-content"><p>do the same research but with websearch</p></div></div></div>
+<div class="message assistant" id="msg-2026-04-07T11-58-24-671Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-07T11-58-24-671Z" class="timestamp-link"><time datetime="2026-04-07T11:58:24.671Z" data-timestamp="2026-04-07T11:58:24.671Z">2026-04-07T11:58:24.671Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01BvitGEgYmBhjjKaFJaF14J"><div class="tool-header"><span class="tool-icon">⚙</span> ToolSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;WebSearch&#34;,
+  &#34;max_results&#34;: 1
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-07T11-58-24-686Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-07T11-58-24-686Z" class="timestamp-link"><time datetime="2026-04-07T11:58:24.686Z" data-timestamp="2026-04-07T11:58:24.686Z">2026-04-07T11:58:24.686Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &quot;type&quot;: &quot;tool_reference&quot;,
+  &quot;tool_name&quot;: &quot;WebSearch&quot;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-07T11-58-27-367Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-07T11-58-27-367Z" class="timestamp-link"><time datetime="2026-04-07T11:58:27.367Z" data-timestamp="2026-04-07T11:58:27.367Z">2026-04-07T11:58:27.367Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Let me run a few searches in parallel.</p></div></div></div>
+<div class="message assistant" id="msg-2026-04-07T11-58-27-875Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-07T11-58-27-875Z" class="timestamp-link"><time datetime="2026-04-07T11:58:27.875Z" data-timestamp="2026-04-07T11:58:27.875Z">2026-04-07T11:58:27.875Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01P3efRGEa61ZvEsraeAAK69"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;sandbox providers VM snapshot fork mid-execution 2026&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-07T11-58-28-235Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-07T11-58-28-235Z" class="timestamp-link"><time datetime="2026-04-07T11:58:28.235Z" data-timestamp="2026-04-07T11:58:28.235Z">2026-04-07T11:58:28.235Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01NvS4sTuyykik3aeWvxHsfZ"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Firecracker microVM snapshot fork clone running instance&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-07T11-58-29-113Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-07T11-58-29-113Z" class="timestamp-link"><time datetime="2026-04-07T11:58:29.113Z" data-timestamp="2026-04-07T11:58:29.113Z">2026-04-07T11:58:29.113Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01KoQKEa2goJfN4gE88d3jy4"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;CRIU checkpoint restore fork running process container 2026&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-07T11-58-40-173Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-07T11-58-40-173Z" class="timestamp-link"><time datetime="2026-04-07T11:58:40.173Z" data-timestamp="2026-04-07T11:58:40.173Z">2026-04-07T11:58:40.173Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;sandbox providers VM snapshot fork mid-execution 2026&quot;
+
+Links: [{&quot;title&quot;:&quot;Sandbox providers: types, categories, and top platforms in 2026 | Blog — Northflank&quot;,&quot;url&quot;:&quot;https://northflank.com/blog/sandbox-providers&quot;},{&quot;title&quot;:&quot;11 Best Sandbox Runners in 2026 | Better Stack Community&quot;,&quot;url&quot;:&quot;https://betterstack.com/community/comparisons/best-sandbox-runners/&quot;},{&quot;title&quot;:&quot;Best platforms for long-running sandbox environments in 2026 | Blog — Northflank&quot;,&quot;url&quot;:&quot;https://northflank.com/blog/best-platforms-for-long-running-sandbox-environments&quot;},{&quot;title&quot;:&quot;How I built sandboxes that boot in 28ms using Firecracker snapshots - DEV Community&quot;,&quot;url&quot;:&quot;https://dev.to/adwitiya/how-i-built-sandboxes-that-boot-in-28ms-using-firecracker-snapshots-i0k&quot;},{&quot;title&quot;:&quot;What’s the best code execution sandbox for AI agents in 2026? | Blog — Northflank&quot;,&quot;url&quot;:&quot;https://northflank.com/blog/best-code-execution-sandbox-for-ai-agents&quot;},{&quot;title&quot;:&quot;Top Sandbox Platforms for AI Code Execution in 2026 - Koyeb&quot;,&quot;url&quot;:&quot;https://www.koyeb.com/blog/top-sandbox-code-execution-platforms-for-ai-code-execution-2026&quot;},{&quot;title&quot;:&quot;GitHub - restyler/awesome-sandbox: Awesome Code Sandboxing for AI · GitHub&quot;,&quot;url&quot;:&quot;https://github.com/restyler/awesome-sandbox&quot;},{&quot;title&quot;:&quot;Sandbox Environments for CDEs - Isolation | InfraGap&quot;,&quot;url&quot;:&quot;https://infragap.com/sandbox-environments/&quot;},{&quot;title&quot;:&quot;AI Agent Sandboxes Compared | Ry Walker Research | Ry Walker&quot;,&quot;url&quot;:&quot;https://rywalker.com/research/ai-agent-sandboxes&quot;},{&quot;title&quot;:&quot;A field guide to sandboxes for AI - Luis Cardoso&quot;,&quot;url&quot;:&quot;https://www.luiscardoso.dev/blog/sandboxes-for-ai&quot;}]
+
+Based on the search results, here are the key findings about sandbox providers offering VM snapshot and fork capabilities for mid-execution in 2026:
+
+## Key Providers with Fork/Snapshot Capabilities
+
+**Freestyle** stands out with live forking capabilities: Agents can fork a running VM without pausing it, and VMs can be hibernated to disk so billing stops while state is fully preserved.
+
+**CodeSandbox** offers snapshot and fork workflows: CodeSandbox persists environment state across sessions and supports snapshot and fork workflows that are genuinely useful for long-running agent work. You can save a sandbox at any point, branch from it, and restore in under two seconds.
+
+**E2B** provides snapshot support: E2B supports sandbox persistence through snapshots and AutoResume.
+
+**Modal** includes snapshot capabilities: Sandbox timeouts are configurable up to 24 hours, with snapshot-based state preservation for longer workflows.
+
+## Advanced Snapshot Technology
+
+A particularly innovative approach is Zeroboot: Sub-millisecond VM sandboxes via copy-on-write forking of Firecracker snapshots. 0.79ms p50 spawn, ~265KB per sandbox.
+
+## Context on Mid-Execution Forking
+
+Snapshot cloning involves booting a &quot;golden&quot; VM once with language runtimes and package cache, then snapshotting and cloning per session for fast cold start and reset. Fork-and-exec style keeps a pool of paused/suspended VMs, resuming on demand, which is operationally trickier but can reduce tail latency.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.
+[result-id: r1]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-07T11-58-40-750Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-07T11-58-40-750Z" class="timestamp-link"><time datetime="2026-04-07T11:58:40.750Z" data-timestamp="2026-04-07T11:58:40.750Z">2026-04-07T11:58:40.750Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;CRIU checkpoint restore fork running process container 2026&quot;
+
+Links: [{&quot;title&quot;:&quot;How to Implement Container Checkpoint and Restore with CRIU on Kubernetes&quot;,&quot;url&quot;:&quot;https://oneuptime.com/blog/post/2026-02-09-container-checkpoint-restore-criu/view&quot;},{&quot;title&quot;:&quot;GitHub - checkpoint-restore/criu: Checkpoint/Restore tool · GitHub&quot;,&quot;url&quot;:&quot;https://github.com/checkpoint-restore/criu&quot;},{&quot;title&quot;:&quot;Container Checkpoint/Restore with CRIU&quot;,&quot;url&quot;:&quot;https://www.devzero.io/blog/checkpoint-restore-with-criu&quot;},{&quot;title&quot;:&quot;CRIU&quot;,&quot;url&quot;:&quot;https://criu.org/Main_Page&quot;},{&quot;title&quot;:&quot;CRIU - Checkpoint/Restore in user space - Red Hat Customer Portal&quot;,&quot;url&quot;:&quot;https://access.redhat.com/articles/2455211&quot;},{&quot;title&quot;:&quot;Checkpoint/Restore - CRIU&quot;,&quot;url&quot;:&quot;https://criu.org/Checkpoint/Restore&quot;},{&quot;title&quot;:&quot;CRIU - Wikipedia&quot;,&quot;url&quot;:&quot;https://en.wikipedia.org/wiki/CRIU&quot;},{&quot;title&quot;:&quot;CRIU - Checkpoint Restore in Userspace for computational ...&quot;,&quot;url&quot;:&quot;https://www.epj-conferences.org/articles/epjconf/pdf/2024/05/epjconf_chep2024_07046.pdf&quot;},{&quot;title&quot;:&quot;How to Use Docker Checkpoint and Restore (CRIU)&quot;,&quot;url&quot;:&quot;https://oneuptime.com/blog/post/2026-01-16-docker-checkpoint-restore/view&quot;},{&quot;title&quot;:&quot;CRIU - Checkpoint Restore in Userspace for computational simulations and scientific applications&quot;,&quot;url&quot;:&quot;https://arxiv.org/html/2402.05244v1&quot;}]
+
+I&#x27;ve completed the web search for your query on CRIU checkpoint restore functionality. Here are the key findings:
+
+## Overview of CRIU
+
+CRIU (Checkpoint/Restore In Userspace) is a Linux software that can freeze a running container or application and checkpoint its state to disk, with the saved data used to restore the application exactly as it was during the time of the freeze.
+
+## Checkpoint and Restore Process
+
+CRIU captures everything about a running process including memory contents, open files, network connections, and process tree structure. Unlike traditional container stop and start operations that reinitialize applications from scratch, restore brings containers back to their exact previous state, with applications continuing from the instruction they were executing when checkpointed.
+
+## Fork and Process Tree Handling
+
+During restoration, CRIU calls fork() many times to re-create the processes needed to be restored. To checkpoint a process tree (a process and all its child processes), CRIU checkpoints each connected child process, meaning CRIU always checkpoints and restores a parent process and all its child processes.
+
+## Container Integration (2026)
+
+Kubernetes 1.25 introduced built-in forensic container checkpointing as an alpha feature, enabling checkpoint creation via kubectl without manual runc commands. CRIU is currently used by OpenVZ, LXC/LXD/Incus, Docker, Podman, Kubernetes and other software, and is packaged for many Linux distributions.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.
+[result-id: r2]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-07T11-58-40-799Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-07T11-58-40-799Z" class="timestamp-link"><time datetime="2026-04-07T11:58:40.799Z" data-timestamp="2026-04-07T11:58:40.799Z">2026-04-07T11:58:40.799Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Firecracker microVM snapshot fork clone running instance&quot;
+
+Links: [{&quot;title&quot;:&quot;firecracker/docs/snapshotting/snapshot-support.md at main · firecracker-microvm/firecracker&quot;,&quot;url&quot;:&quot;https://github.com/firecracker-microvm/firecracker/blob/main/docs/snapshotting/snapshot-support.md&quot;},{&quot;title&quot;:&quot;Firecracker&quot;,&quot;url&quot;:&quot;https://firecracker-microvm.github.io/&quot;},{&quot;title&quot;:&quot;firecracker/docs/snapshotting/random-for-clones.md at main · firecracker-microvm/firecracker&quot;,&quot;url&quot;:&quot;https://github.com/firecracker-microvm/firecracker/blob/main/docs/snapshotting/random-for-clones.md&quot;},{&quot;title&quot;:&quot;How can I snapshot and restore vm running containers? · Issue #537 · firecracker-microvm/firecracker-containerd&quot;,&quot;url&quot;:&quot;https://github.com/firecracker-microvm/firecracker-containerd/issues/537&quot;},{&quot;title&quot;:&quot;How we clone a running VM in 2 seconds - CodeSandbox&quot;,&quot;url&quot;:&quot;https://codesandbox.io/blog/how-we-clone-a-running-vm-in-2-seconds&quot;},{&quot;title&quot;:&quot;We clone a running VM in 2 seconds | Hacker News&quot;,&quot;url&quot;:&quot;https://news.ycombinator.com/item?id=32683834&quot;},{&quot;title&quot;:&quot;firecracker-microvm/docs/snapshotting/snapshot-support.md at main · preps-pp-ua/firecracker-microvm&quot;,&quot;url&quot;:&quot;https://github.com/preps-pp-ua/firecracker-microvm/blob/main/docs/snapshotting/snapshot-support.md&quot;},{&quot;title&quot;:&quot;Create RW disk snapshots of running Firecracker microVMs · Issue #886 · firecracker-microvm/firecracker&quot;,&quot;url&quot;:&quot;https://github.com/firecracker-microvm/firecracker/issues/886&quot;},{&quot;title&quot;:&quot;GitHub - firecracker-microvm/firecracker: Secure and fast microVMs for serverless computing. · GitHub&quot;,&quot;url&quot;:&quot;https://github.com/firecracker-microvm/firecracker&quot;},{&quot;title&quot;:&quot;Releases · firecracker-microvm/firecracker&quot;,&quot;url&quot;:&quot;https://github.com/firecracker-microvm/firecracker/releases&quot;}]
+
+Based on the search results, here&#x27;s information about Firecracker microVM snapshot, fork, and clone functionality for running instances:
+
+## Snapshot Overview
+
+MicroVM snapshotting is a mechanism through which a running microVM and its resources can be serialized and saved to an external medium in the form of a snapshot. This snapshot can be later used to restore a microVM with its guest workload at that particular point in time.
+
+## How Snapshots Work
+
+Firecracker exposes a create_snapshot function that yields two files: snapshot.snap — the configuration of the machine (CPU template &amp; count, disks attached, network devices attached, etc.) and memory.snap — the memory of the VM while it was paused. These two files, together with the disk, contain everything needed to start a MicroVM, and it will just continue from when the snapshot was taken.
+
+## Cloning and Forking Running Instances
+
+A Firecracker microVM snapshot can be used for loading it later in a different Firecracker process, and the original guest workload is being simply resumed. This capability enables cloning running VMs. When calling create_snapshot on the Firecracker VM, it takes about 1 second per gigabyte to write the memory snapshot file. Meaning that if you have a VM with 12GB of memory, it would take 12 seconds to create the snapshot.
+
+## Limitations for Clones
+
+Guest network connectivity is not guaranteed to be preserved after resume. For recommendations related to guest network connectivity for clones please see Network connectivity for clones. Additionally, both network and vsock packet loss can be expected on guests that are resumed from snapshots in another Firecracker process. It is also not guaranteed that the state of the network connections survives the process.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.
+[result-id: r3]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-07T11-58-43-981Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-07T11-58-43-981Z" class="timestamp-link"><time datetime="2026-04-07T11:58:43.981Z" data-timestamp="2026-04-07T11:58:43.981Z">2026-04-07T11:58:43.981Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01MEnLc3KaQKq9TV4WccAjn1"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Freestyle sandbox live VM forking agent 2026&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-07T11-58-44-201Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-07T11-58-44-201Z" class="timestamp-link"><time datetime="2026-04-07T11:58:44.201Z" data-timestamp="2026-04-07T11:58:44.201Z">2026-04-07T11:58:44.201Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01Bt1Eq2ck1bLwSvZqqpUAFv"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;CodeSandbox clone running VM 2 seconds how it works&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-07T11-58-53-022Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-07T11-58-53-022Z" class="timestamp-link"><time datetime="2026-04-07T11:58:53.022Z" data-timestamp="2026-04-07T11:58:53.022Z">2026-04-07T11:58:53.022Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;CodeSandbox clone running VM 2 seconds how it works&quot;
+
+Links: [{&quot;title&quot;:&quot;How we clone a running VM in 2 seconds - CodeSandbox&quot;,&quot;url&quot;:&quot;https://codesandbox.io/blog/how-we-clone-a-running-vm-in-2-seconds&quot;},{&quot;title&quot;:&quot;Cloning microVMs by sharing memory through userfaultfd - CodeSandbox&quot;,&quot;url&quot;:&quot;https://codesandbox.io/blog/cloning-microvms-using-userfaultfd&quot;},{&quot;title&quot;:&quot;CodeSandbox SDK&quot;,&quot;url&quot;:&quot;https://codesandbox.io/sdk&quot;},{&quot;title&quot;:&quot;CodeSandbox SDK – CodeSandbox&quot;,&quot;url&quot;:&quot;https://codesandbox.stream/docs/sdk&quot;},{&quot;title&quot;:&quot;VM Sandboxes (Previously Devboxes) – CodeSandbox&quot;,&quot;url&quot;:&quot;https://codesandbox.io/docs/learn/vm-sandboxes/overview&quot;},{&quot;title&quot;:&quot;A unique database for every PR using CodeSandbox - CodeSandbox&quot;,&quot;url&quot;:&quot;https://codesandbox.io/blog/unique-database-for-every-pr&quot;},{&quot;title&quot;:&quot;Vercel Sandbox vs CodeSandbox | Vercel Knowledge Base&quot;,&quot;url&quot;:&quot;https://vercel.com/kb/guide/vercel-sandbox-vs-codesandbox&quot;},{&quot;title&quot;:&quot;What&#x27;s Unique about CodeSandbox CDEs - CodeSandbox&quot;,&quot;url&quot;:&quot;https://codesandbox.io/blog/whats-unique-about-codesandbox-cde&quot;},{&quot;title&quot;:&quot;CodeSandbox Repositories – CodeSandbox&quot;,&quot;url&quot;:&quot;https://codesandbox.stream/docs/learn/repositories/overview&quot;},{&quot;title&quot;:&quot;Together Code Sandbox - Together AI Docs&quot;,&quot;url&quot;:&quot;https://docs.together.ai/docs/together-code-sandbox&quot;}]
+
+Based on the search results, here&#x27;s how CodeSandbox clones running VMs in 2 seconds:
+
+## Overall Approach
+
+CodeSandbox allows people to click &quot;fork&quot; and get an exact copy of that environment within 2 seconds, and it clones a VM in under 2 seconds (average 921ms in published benchmarks) using copy-on-write memory sharing, with the clone preserving full process state so running dev servers and databases continue in the forked sandbox without restart.
+
+## The Technical Challenge
+
+The core challenge is handling large memory files. CodeSandbox&#x27;s goal is to create a clone within 2 seconds, and since they&#x27;re working with big files (4GiB-12GiB), they cannot serialize and copy the file within that time.
+
+## The Solution: Two-Part Approach
+
+CodeSandbox overcomes this by eagerly saving memory changes to the disk so that when they need to serialize the memory, most of it has been done already, and by using Copy-on-Write for copying the file, only copying the memory blocks when they&#x27;re actually needed by the new VM.
+
+## Evolution to userfaultfd
+
+Later, after enabling a new UFFD handler, their live Copy-on-Write forks became instant and the dev server of clones became available within 2 seconds, and CodeSandbox can now clone the memory of VMs in a Copy-on-Write fashion without having to go through the filesystem. They can now reliably fork a VM within 1.5s, regardless of how much memory is used for the VM.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.
+[result-id: r4]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-07T11-58-53-293Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-07T11-58-53-293Z" class="timestamp-link"><time datetime="2026-04-07T11:58:53.293Z" data-timestamp="2026-04-07T11:58:53.293Z">2026-04-07T11:58:53.293Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Freestyle sandbox live VM forking agent 2026&quot;
+
+Links: [{&quot;title&quot;:&quot;Freestyle VMs - Sandboxes for AI Agents&quot;,&quot;url&quot;:&quot;https://www.freestyle.sh/products/vms&quot;},{&quot;title&quot;:&quot;11 Best Sandbox Runners in 2026 | Better Stack Community&quot;,&quot;url&quot;:&quot;https://betterstack.com/community/comparisons/best-sandbox-runners/&quot;},{&quot;title&quot;:&quot;Freestyle - Manage AI-Generated Code&quot;,&quot;url&quot;:&quot;https://www.freestyle.sh/&quot;},{&quot;title&quot;:&quot;Launch HN: Freestyle: Sandboxes for AI Coding Agents | Hacker News&quot;,&quot;url&quot;:&quot;https://news.ycombinator.com/item?id=47663147&quot;},{&quot;title&quot;:&quot;Freestyle Review, Pricing, Features and Alternatives - Aimojo.io&quot;,&quot;url&quot;:&quot;https://aimojo.io/tools/freestyle/&quot;},{&quot;title&quot;:&quot;GitHub - zerobootdev/zeroboot: Sub-millisecond VM sandboxes for AI agents via copy-on-write forking · GitHub&quot;,&quot;url&quot;:&quot;https://github.com/zerobootdev/zeroboot&quot;},{&quot;title&quot;:&quot;AI Agent Sandbox: How to Safely Run Autonomous Agents in 2026&quot;,&quot;url&quot;:&quot;https://www.firecrawl.dev/blog/ai-agent-sandbox&quot;},{&quot;title&quot;:&quot;Best sandboxes for coding agents in 2026 | Blog — Northflank&quot;,&quot;url&quot;:&quot;https://northflank.com/blog/best-sandboxes-for-coding-agents&quot;},{&quot;title&quot;:&quot;Sub-millisecond sandboxes for AI agents via copy-on-write forking | Open-source Projects | Open-source Projects&quot;,&quot;url&quot;:&quot;https://www.opensourceprojects.dev/post/35925682-fbba-4d65-90da-6a793159fac5&quot;},{&quot;title&quot;:&quot;How to sandbox AI agents in 2026: MicroVMs, gVisor &amp; isolation strategies | Blog — Northflank&quot;,&quot;url&quot;:&quot;https://northflank.com/blog/how-to-sandbox-ai-agents&quot;}]
+
+Based on the search results, here&#x27;s what I found about Freestyle sandbox, live VM forking, and agents in 2026:
+
+## Freestyle Overview
+
+Freestyle is a cloud VM platform built for managing AI generated code and developer sandboxes. It gives teams full Linux environments that spin up in under 800 milliseconds with real root access and nested virtualisation support.
+
+## Live VM Forking
+
+Freestyle gives each agent its own isolated environment with forking to explore multiple solutions. With features like live VM forking, Freestyle lets you clone a running VM without pausing it, meaning your AI agent can explore multiple code paths in parallel, all from the same base state.
+
+## Key Features for AI Agents
+
+Agents can fork a running VM without pausing it, and VMs can be hibernated to disk so billing stops while state is fully preserved. Freestyle gives you real root access, nested virtualization support, and a first-class TypeScript SDK — making it a strong fit for teams building coding agents, user sandboxes, or browser automation workflows that need more than a constrained execution environment.
+
+## Performance
+
+VMs provision in under 700ms from API request to ready machine. Clone a running VM without pausing it — get full copies in milliseconds.
+
+## Pricing
+
+The Free plan costs nothing and includes up to 10 concurrent VMs, 500 repositories, and 500 runs per month. The Hobby plan is $50/month (plus usage over $50) with up to 40 concurrent VMs and 5,000 runs. The Pro plan is $500/month (plus usage) with up to 400 concurrent VMs and 500,000 runs.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.
+[result-id: r5]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-07T11-59-08-223Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-07T11-59-08-223Z" class="timestamp-link"><time datetime="2026-04-07T11:59:08.223Z" data-timestamp="2026-04-07T11:59:08.223Z">2026-04-07T11:59:08.223Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Here's what web search turns up, which adds some newer entries:</p>
+<hr />
+<p><strong>Providers with first-class VM forking</strong></p>
+<p><strong><a href="https://www.freestyle.sh/products/vms">Freestyle</a></strong> - the clearest match for your question. Live VM forking without pausing the source VM. Clones complete in milliseconds. Built explicitly for AI agents exploring parallel code paths. TypeScript SDK.</p>
+<p><strong><a href="https://codesandbox.io/blog/how-we-clone-a-running-vm-in-2-seconds">CodeSandbox</a></strong> - clones a running Firecracker microVM in ~921ms average using copy-on-write memory sharing via <code>userfaultfd</code>. Running dev servers and databases continue in the fork without restart. Has a proper SDK.</p>
+<p><strong><a href="https://github.com/zerobootdev/zeroboot">Zeroboot</a></strong> (open source) - sub-millisecond VM sandboxes via copy-on-write forking of Firecracker snapshots. 0.79ms p50 spawn. Very new/experimental.</p>
+<hr />
+<p><strong>Infrastructure-level (self-hosted)</strong></p>
+<p><strong><a href="https://github.com/firecracker-microvm/firecracker/blob/main/docs/snapshotting/snapshot-support.md">Firecracker</a></strong> - <code>create_snapshot</code> pauses the VM and writes memory + config to disk. You can restore from the same snapshot multiple times to get parallel forks. Speed is ~1s per GB of RAM. Network state doesn't survive.</p>
+<p><strong><a href="https://criu.org/Main_Page">CRIU</a></strong> - process/container checkpoint and restore on Linux. Kubernetes has built-in support (alpha since 1.25). Restoring from the same checkpoint multiple times forks the process tree. Works with Docker, Podman, LXC.</p>
+<hr />
+<p><strong>Key distinction:</strong> Freestyle and CodeSandbox do <em>live</em> forking (no pause, copy-on-write). Firecracker and CRIU require pausing first, then you can restore the snapshot N times.</p>
+<p>Sources:
+- <a href="https://www.freestyle.sh/products/vms">Freestyle VMs - Sandboxes for AI Agents</a>
+- <a href="https://codesandbox.io/blog/how-we-clone-a-running-vm-in-2-seconds">How we clone a running VM in 2 seconds - CodeSandbox</a>
+- <a href="https://codesandbox.io/blog/cloning-microvms-using-userfaultfd">Cloning microVMs by sharing memory through userfaultfd - CodeSandbox</a>
+- <a href="https://github.com/zerobootdev/zeroboot">Zeroboot - Sub-millisecond VM sandboxes via copy-on-write forking</a>
+- <a href="https://github.com/firecracker-microvm/firecracker/blob/main/docs/snapshotting/snapshot-support.md">Firecracker snapshot support docs</a>
+- <a href="https://criu.org/Main_Page">CRIU main page</a>
+- <a href="https://www.devzero.io/blog/checkpoint-restore-with-criu">Container Checkpoint/Restore with CRIU - DevZero</a></p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<span class="disabled">&larr; Prev</span>
+<span class="current">1</span>
+<a href="page-002.html">2</a>
+<a href="page-002.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>
