@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 1</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 1/2</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<span class="disabled">&larr; Prev</span>
+<span class="current">1</span>
+<a href="page-002.html">2</a>
+<a href="page-002.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-04-07T12-25-57-709Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-07T12-25-57-709Z" class="timestamp-link"><time datetime="2026-04-07T12:25:57.709Z" data-timestamp="2026-04-07T12:25:57.709Z">2026-04-07T12:25:57.709Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Are there any alternatives to E2B that give you more low-level Linux control?</p></div></div></div>
+<div class="message assistant" id="msg-2026-04-07T12-26-07-471Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-07T12-26-07-471Z" class="timestamp-link"><time datetime="2026-04-07T12:26:07.471Z" data-timestamp="2026-04-07T12:26:07.471Z">2026-04-07T12:26:07.471Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Yes, several alternatives offer more low-level Linux control than E2B:</p>
+<p><strong>Full VM / bare metal access</strong>
+- <strong>Firecracker</strong> (AWS) - microVM technology, the engine behind Lambda and Fargate. Very low-level, you manage everything.
+- <strong>Fly.io Machines API</strong> - spin up full VMs via API, SSH access, persistent storage
+- <strong>Modal</strong> - containers with GPU support, but less locked-down than E2B</p>
+<p><strong>Container-based with more control</strong>
+- <strong>Northflank</strong> - full container orchestration with exec access
+- <strong>Railway</strong> - less locked down, can run arbitrary processes
+- <strong>Render</strong> - similar, SSH access on paid plans</p>
+<p><strong>Self-hosted sandboxing</strong>
+- <strong>gVisor</strong> (Google) - kernel-level isolation, runs on your own infra
+- <strong>Kata Containers</strong> - lightweight VMs that behave like containers, OCI-compatible
+- <strong>nsjail</strong> - Google's process isolation tool, very granular control</p>
+<p><strong>Code execution focused (but more permissive)</strong>
+- <strong>Piston</strong> (open source) - self-hostable, supports many languages
+- <strong>Judge0</strong> - similar, open source, designed for competitive programming judges</p>
+<p><strong>Cloud provider primitives</strong>
+- <strong>AWS EC2 + userdata</strong> or <strong>GCP Compute Engine</strong> - full VMs on demand, maximum control
+- <strong>Azure Container Instances</strong> - fast container spinup with exec support</p>
+<p>The right choice depends on your use case. If you want E2B-like simplicity but more control, <strong>Fly Machines</strong> is probably the closest. If you need maximum low-level access and are okay managing infra, <strong>Firecracker</strong> or a raw cloud VM is the way to go.</p></div></div></div>
+<div class="message user" id="msg-2026-04-07T12-26-27-064Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-07T12-26-27-064Z" class="timestamp-link"><time datetime="2026-04-07T12:26:27.064Z" data-timestamp="2026-04-07T12:26:27.064Z">2026-04-07T12:26:27.064Z</time></a></div><div class="message-content">
+<div class="user-content"><p><local-command-caveat>Caveat: The messages below were generated by the user while running local commands. DO NOT respond to these messages or otherwise consider them in your response unless the user explicitly asks you to.</local-command-caveat></p></div></div></div>
+<div class="message user" id="msg-2026-04-07T12-26-27-064Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-07T12-26-27-064Z" class="timestamp-link"><time datetime="2026-04-07T12:26:27.064Z" data-timestamp="2026-04-07T12:26:27.064Z">2026-04-07T12:26:27.064Z</time></a></div><div class="message-content">
+<div class="user-content"><p><command-name>/copy</command-name>
+            <command-message>copy</command-message>
+            <command-args></command-args></p></div></div></div>
+<div class="message user" id="msg-2026-04-07T12-26-27-064Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-07T12-26-27-064Z" class="timestamp-link"><time datetime="2026-04-07T12:26:27.064Z" data-timestamp="2026-04-07T12:26:27.064Z">2026-04-07T12:26:27.064Z</time></a></div><div class="message-content">
+<div class="user-content"><p><local-command-stdout>Copied to clipboard (1499 characters, 26 lines)
+Also written to /tmp/claude/response.md</local-command-stdout></p></div></div></div>
+<div class="message user" id="msg-2026-04-07T12-26-48-314Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-07T12-26-48-314Z" class="timestamp-link"><time datetime="2026-04-07T12:26:48.314Z" data-timestamp="2026-04-07T12:26:48.314Z">2026-04-07T12:26:48.314Z</time></a></div><div class="message-content">
+<div class="user-content"><p>do the same research again but with websearch</p></div></div></div>
+<div class="message assistant" id="msg-2026-04-07T12-26-50-287Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-07T12-26-50-287Z" class="timestamp-link"><time datetime="2026-04-07T12:26:50.287Z" data-timestamp="2026-04-07T12:26:50.287Z">2026-04-07T12:26:50.287Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01PVBrV7VLWpB2qkSMCqNMpn"><div class="tool-header"><span class="tool-icon">⚙</span> ToolSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;WebSearch&#34;,
+  &#34;max_results&#34;: 1
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-07T12-26-50-298Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-07T12-26-50-298Z" class="timestamp-link"><time datetime="2026-04-07T12:26:50.298Z" data-timestamp="2026-04-07T12:26:50.298Z">2026-04-07T12:26:50.298Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &quot;type&quot;: &quot;tool_reference&quot;,
+  &quot;tool_name&quot;: &quot;WebSearch&quot;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-07T12-26-52-770Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-07T12-26-52-770Z" class="timestamp-link"><time datetime="2026-04-07T12:26:52.770Z" data-timestamp="2026-04-07T12:26:52.770Z">2026-04-07T12:26:52.770Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>I'll run a few searches in parallel to cover the landscape.</p></div></div></div>
+<div class="message assistant" id="msg-2026-04-07T12-26-53-043Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-07T12-26-53-043Z" class="timestamp-link"><time datetime="2026-04-07T12:26:53.043Z" data-timestamp="2026-04-07T12:26:53.043Z">2026-04-07T12:26:53.043Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_017jRiQ92rdyHUjK6aYaSodj"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;E2B alternatives low-level Linux control sandbox 2025 2026&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-07T12-26-53-900Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-07T12-26-53-900Z" class="timestamp-link"><time datetime="2026-04-07T12:26:53.900Z" data-timestamp="2026-04-07T12:26:53.900Z">2026-04-07T12:26:53.900Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01BX8cNKyQrc9LZT7dgEgxhH"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Firecracker microVM vs E2B code execution sandbox comparison&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-07T12-26-54-556Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-07T12-26-54-556Z" class="timestamp-link"><time datetime="2026-04-07T12:26:54.556Z" data-timestamp="2026-04-07T12:26:54.556Z">2026-04-07T12:26:54.556Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_018WURc8dXUFp4TodX1EVbak"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Fly.io Machines API Modal sandbox Linux control developer tools 2025&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-07T12-27-03-483Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-07T12-27-03-483Z" class="timestamp-link"><time datetime="2026-04-07T12:27:03.483Z" data-timestamp="2026-04-07T12:27:03.483Z">2026-04-07T12:27:03.483Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Fly.io Machines API Modal sandbox Linux control developer tools 2025&quot;
+
+Links: [{&quot;title&quot;:&quot;Top AI Code Sandbox Products in 2025&quot;,&quot;url&quot;:&quot;https://modal.com/blog/top-code-agent-sandbox-products&quot;},{&quot;title&quot;:&quot;Machines API · Fly Docs&quot;,&quot;url&quot;:&quot;https://fly.io/docs/machines/api/&quot;},{&quot;title&quot;:&quot;Per-User Dev Environments with Fly Machines · Fly Docs&quot;,&quot;url&quot;:&quot;https://fly.io/docs/blueprints/per-user-dev-environments/&quot;},{&quot;title&quot;:&quot;Build fast. Run any code fearlessly. · Fly&quot;,&quot;url&quot;:&quot;https://fly.io/&quot;},{&quot;title&quot;:&quot;Fly Machines · Fly Docs&quot;,&quot;url&quot;:&quot;https://fly.io/docs/machines/&quot;},{&quot;title&quot;:&quot;Fly’s new Sprites.dev addresses both developer sandboxes and API sandboxes at the same time&quot;,&quot;url&quot;:&quot;https://simonwillison.net/2026/Jan/9/sprites-dev/&quot;},{&quot;title&quot;:&quot;Fly.io developer documentation · Fly Docs&quot;,&quot;url&quot;:&quot;https://fly.io/docs/&quot;},{&quot;title&quot;:&quot;Fly Machines API&quot;,&quot;url&quot;:&quot;https://docs.machines.dev/&quot;},{&quot;title&quot;:&quot;Top Fly.io Sprites alternatives for secure AI code execution and sandboxed environments | Blog — Northflank&quot;,&quot;url&quot;:&quot;https://northflank.com/blog/top-fly-io-sprites-alternatives-for-secure-ai-code-execution-and-sandboxed-environments&quot;},{&quot;title&quot;:&quot;E2B vs Modal vs Fly.io: Code Execution Sandbox Comparison for AI Agents – Athenic Blog&quot;,&quot;url&quot;:&quot;https://getathenic.com/blog/e2b-vs-modal-vs-flyio-sandbox-comparison&quot;}]
+
+Here are the search results for your query about Fly.io Machines API, Modal sandbox, Linux control, and developer tools in 2025:
+
+## Key Findings:
+
+**Fly.io Machines API Overview:**
+Fly.io&#x27;s Machines API spins up a micro‑VM in less than a second and exposes a REST interface. Fly Machines are fast-launching VMs that can be started and stopped at subsecond speeds.
+
+**Use Cases:**
+Developers often script Machines as an ad‑hoc sandbox for user code. Fly Machines are a safe execution sandbox for even the sketchiest user-generated (or LLM-generated) code.
+
+**Strengths:**
+Strengths include global edge regions, persistent VM option, and straightforward CLI.
+
+**Limitations:**
+Weaknesses are no sandbox-specific features (tunnels, snapshots, per-process logs), and networking controls and secrets management have to be layered on.
+
+**Recent Development - Sprites.dev:**
+Fly.io released Sprites.dev, described as &quot;Stateful sandbox environments with checkpoint &amp; restore&quot; that addresses both safe development environments for running coding agents and an API for running untrusted code in a secure sandbox.
+
+**Modal Comparison:**
+Modal&#x27;s sandbox images can be dynamically defined at runtime via its Python SDK, features built-in tunneling for direct external connections and granular egress policies, and offers Python/JavaScript/Go SDKs with no YAML requirements.
+
+The search results show that both platforms are actively competing in the developer sandbox space, with Fly.io offering infrastructure-focused solutions and Modal focusing on Python-first ML workloads.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.
+[result-id: r1]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-07T12-27-04-341Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-07T12-27-04-341Z" class="timestamp-link"><time datetime="2026-04-07T12:27:04.341Z" data-timestamp="2026-04-07T12:27:04.341Z">2026-04-07T12:27:04.341Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Firecracker microVM vs E2B code execution sandbox comparison&quot;
+
+Links: [{&quot;title&quot;:&quot;Firecracker vs QEMU — E2B Blog&quot;,&quot;url&quot;:&quot;https://e2b.dev/blog/firecracker-vs-qemu&quot;},{&quot;title&quot;:&quot;Open-Source Alternatives to E2B for Sandboxed Code Execution • Beam&quot;,&quot;url&quot;:&quot;https://www.beam.cloud/blog/best-e2b-alternatives&quot;},{&quot;title&quot;:&quot;E2b breakdown - Dwarves Memo&quot;,&quot;url&quot;:&quot;https://memo.d.foundation/breakdown/e2b&quot;},{&quot;title&quot;:&quot;11 Best Sandbox Runners in 2026 | Better Stack Community&quot;,&quot;url&quot;:&quot;https://betterstack.com/community/comparisons/best-sandbox-runners/&quot;},{&quot;title&quot;:&quot;Secure runtime for codegen tools: microVMs, sandboxing, and execution at scale | Blog — Northflank&quot;,&quot;url&quot;:&quot;https://northflank.com/blog/secure-runtime-for-codegen-tools-microvms-sandboxing-and-execution-at-scale&quot;},{&quot;title&quot;:&quot;Daytona vs E2B in 2026: which sandbox for AI code execution? | Blog — Northflank&quot;,&quot;url&quot;:&quot;https://northflank.com/blog/daytona-vs-e2b-ai-code-execution-sandboxes&quot;},{&quot;title&quot;:&quot;Vercel Sandbox vs E2B | Vercel Knowledge Base&quot;,&quot;url&quot;:&quot;https://vercel.com/kb/guide/vercel-sandbox-vs-e2b&quot;},{&quot;title&quot;:&quot;10 Best Code Execution Sandboxes for AI Agents (2026) | Fast.io&quot;,&quot;url&quot;:&quot;https://fast.io/resources/best-code-execution-sandboxes-ai-agents/&quot;},{&quot;title&quot;:&quot;E2B vs Modal: comparing AI code execution sandboxes in 2026 | Blog — Northflank&quot;,&quot;url&quot;:&quot;https://northflank.com/blog/e2b-vs-modal&quot;},{&quot;title&quot;:&quot;AI Sandbox Comparison 2026: E2B vs Lifo vs Daytona | Lifo&quot;,&quot;url&quot;:&quot;https://lifo.sh/blog/ai-sandbox-comparison-2026&quot;}]
+
+Based on the search results, here&#x27;s a comprehensive comparison of Firecracker microVM and E2B code execution sandbox:
+
+## Key Relationship
+
+E2B&#x27;s sandboxes are built on Firecracker micro-VMs, enabling strong isolation for untrusted code. So E2B is actually built *on top of* Firecracker rather than being a competitor.
+
+## What is Firecracker?
+
+Firecracker, developed by AWS, has gained significant attention for being lightweight, fast, and security-focused. It powers AWS Lambda&#x27;s serverless infrastructure, handling tens of trillion function invocations monthly. Firecracker is a virtual machine monitor (VMM) built by AWS specifically for running serverless workloads. It&#x27;s a stripped-down virtualization tool that focuses on speed and security rather than flexibility.
+
+## What is E2B?
+
+E2B is an open-source sandbox platform made for AI agents and LLM apps. It runs secure, isolated cloud environments using Firecracker microVMs (the tech behind AWS Lambda), which start in under 200ms with no cold starts.
+
+## Performance Characteristics
+
+Firecracker&#x27;s ≤125 millisecond boot times enable near-instantaneous sandbox creation, while the &lt;5 MiB memory overhead per microVM allows for high-density deployments essential for multi-tenant platforms. E2B uses Firecracker microVMs to provide hardware-level isolation for each code execution. Each code execution runs in its own microVM, which means it gets a dedicated Linux kernel. This kernel-level isolation prevents exploits that rely on shared kernel vulnerabilities, such as container escape attacks that target the host operating system.
+
+## Security Model
+
+Firecracker provides hardware-level isolation via KVM-based virtualization, ensuring each sandbox operates with its own kernel and preventing cross-tenant attacks. Unlike container-based solutions that share the host kernel, Firecracker&#x27;s minimalist design reduces the attack surface by excluding unnecessary devices and guest functionality.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.
+[result-id: r2]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-07T12-27-05-302Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-07T12-27-05-302Z" class="timestamp-link"><time datetime="2026-04-07T12:27:05.302Z" data-timestamp="2026-04-07T12:27:05.302Z">2026-04-07T12:27:05.302Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;E2B alternatives low-level Linux control sandbox 2025 2026&quot;
+
+Links: [{&quot;title&quot;:&quot;The best alternatives to E2B.dev for running untrusted code in secure sandboxes | Blog — Northflank&quot;,&quot;url&quot;:&quot;https://northflank.com/blog/best-alternatives-to-e2b-dev-for-running-untrusted-code-in-secure-sandboxes&quot;},{&quot;title&quot;:&quot;Open-Source Alternatives to E2B for Sandboxed Code Execution • Beam&quot;,&quot;url&quot;:&quot;https://www.beam.cloud/blog/best-e2b-alternatives&quot;},{&quot;title&quot;:&quot;11 Best Sandbox Runners in 2026 | Better Stack Community&quot;,&quot;url&quot;:&quot;https://betterstack.com/community/comparisons/best-sandbox-runners/&quot;},{&quot;title&quot;:&quot;Top self-hostable alternatives to E2B for AI agents in 2026 | Blog — Northflank&quot;,&quot;url&quot;:&quot;https://northflank.com/blog/self-hostable-alternatives-to-e2b-for-ai-agents&quot;},{&quot;title&quot;:&quot;Best E2B Alternatives &amp; Competitors&quot;,&quot;url&quot;:&quot;https://sourceforge.net/software/product/E2B/alternatives&quot;},{&quot;title&quot;:&quot;What are the 10 Best E2B Alternatives to Deploy AI Sandboxes - ZenML Blog&quot;,&quot;url&quot;:&quot;https://www.zenml.io/blog/e2b-alternatives&quot;},{&quot;title&quot;:&quot;Vercel Sandbox vs E2B | Vercel Knowledge Base&quot;,&quot;url&quot;:&quot;https://vercel.com/kb/guide/vercel-sandbox-vs-e2b&quot;},{&quot;title&quot;:&quot;Top E2B Alternatives in 2026&quot;,&quot;url&quot;:&quot;https://slashdot.org/software/p/E2B/alternatives&quot;},{&quot;title&quot;:&quot;AI Sandbox Comparison 2026: E2B vs Lifo vs Daytona | Lifo&quot;,&quot;url&quot;:&quot;https://lifo.sh/blog/ai-sandbox-comparison-2026&quot;},{&quot;title&quot;:&quot;Daytona vs E2B in 2026: which sandbox for AI code execution? | Blog — Northflank&quot;,&quot;url&quot;:&quot;https://northflank.com/blog/daytona-vs-e2b-ai-code-execution-sandboxes&quot;}]
+
+Based on the search results, here are the key E2B alternatives with low-level Linux control and sandbox capabilities available in 2025-2026:
+
+## Top E2B Alternatives for Linux Control Sandboxes
+
+**MicroVM-Based Isolation (Strongest Security):**
+
+Northflank is a developer platform that supports running secure microVMs with Firecracker, Kata Containers, Cloud Hypervisor, or gVisor. It supports short-lived jobs, long-running services, BYOC, and multi-tenant sandbox orchestration.
+
+Daytona uses Docker containers as its isolation technology, prioritizing startup speed and resource efficiency. E2B is a platform built specifically for executing untrusted code from AI agents. The platform uses Firecracker microVMs, the same virtualization technology that powers AWS Lambda.
+
+**Self-Hostable Options:**
+
+Microsandbox uses libkrun microVMs, E2B self-hosted uses Firecracker, Northflank BYOC offers Kata Containers with Cloud Hypervisor, gVisor, or Firecracker.
+
+**Container-Based Alternatives:**
+
+Beam sandboxes allow you to securely execute LLM-generated code in an isolated environment, with support for file I/O, networking, and long-running processes (there are no timeouts).
+
+**Browser-Based Runtime:**
+
+A browser-native operating system that maps Web APIs to POSIX interfaces. Code runs entirely in the user&#x27;s browser tab. This includes Lifo, which offers free, zero-latency execution for lighter workloads.
+
+**Key Differentiators for 2025-2026:**
+After pivoting from development environments to AI agent infrastructure in early 2025, it now focuses on sub-90ms sandbox creation for AI agents, code execution workflows, and safe testing. In February 2026 Daytona raised a $24M Series A to expand its agentic infrastructure platform.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.
+[result-id: r3]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-07T12-27-23-400Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-07T12-27-23-400Z" class="timestamp-link"><time datetime="2026-04-07T12:27:23.400Z" data-timestamp="2026-04-07T12:27:23.400Z">2026-04-07T12:27:23.400Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Here's the same research with live web results:</p>
+<p><strong>MicroVM-based (strongest isolation)</strong>
+- <strong>Firecracker</strong> (AWS) - E2B is actually built on top of this. Use it directly for maximum control; powers AWS Lambda at trillions of invocations/month, &lt;125ms boot, &lt;5MB overhead per VM
+- <strong>Northflank</strong> - supports Firecracker, Kata Containers, Cloud Hypervisor, or gVisor. Probably the most flexible managed option for multi-tenant sandboxing with low-level control
+- <strong>Microsandbox</strong> - self-hostable, uses libkrun microVMs</p>
+<p><strong>Managed cloud sandboxes</strong>
+- <strong>Fly.io Sprites</strong> (released Jan 2026) - stateful sandbox environments with checkpoint &amp; restore, built on Fly Machines (sub-second VM spinup). More low-level than E2B, but you layer on your own networking/secrets
+- <strong>Modal</strong> - Python-first, dynamically defined sandbox images at runtime, built-in tunneling, granular egress policies, no cold starts
+- <strong>Daytona</strong> - Docker-based, raised $24M Series A in Feb 2026, focused on AI agent infrastructure
+- <strong>Beam</strong> - no timeouts, supports file I/O, networking, long-running processes</p>
+<p><strong>Self-hosted / open source</strong>
+- <strong>E2B self-hosted</strong> - run E2B's own Firecracker stack on your infra
+- <strong>Northflank BYOC</strong> - bring your own cloud with Kata/gVisor/Firecracker
+- <strong>Piston / Judge0</strong> - simpler container-based execution, good for language sandboxing</p>
+<p><strong>New entrant</strong>
+- <strong>Vercel Sandbox</strong> - Vercel entered this space recently, worth watching if you're already in their ecosystem</p>
+<p>The biggest shift since my training data: Fly.io's <strong>Sprites.dev</strong> is the most notable new option for low-level control with a managed feel.</p>
+<p>Sources:
+- <a href="https://northflank.com/blog/best-alternatives-to-e2b-dev-for-running-untrusted-code-in-secure-sandboxes">Best alternatives to E2B.dev for secure sandboxes - Northflank</a>
+- <a href="https://www.beam.cloud/blog/best-e2b-alternatives">Open-Source Alternatives to E2B - Beam</a>
+- <a href="https://betterstack.com/community/comparisons/best-sandbox-runners/">11 Best Sandbox Runners in 2026 - Better Stack</a>
+- <a href="https://northflank.com/blog/self-hostable-alternatives-to-e2b-for-ai-agents">Self-hostable alternatives to E2B - Northflank</a>
+- <a href="https://simonwillison.net/2026/Jan/9/sprites-dev/">Fly's new Sprites.dev - Simon Willison</a>
+- <a href="https://getathenic.com/blog/e2b-vs-modal-vs-flyio-sandbox-comparison">E2B vs Modal vs Fly.io comparison - Athenic</a>
+- <a href="https://e2b.dev/blog/firecracker-vs-qemu">Firecracker vs QEMU - E2B Blog</a>
+- <a href="https://northflank.com/blog/daytona-vs-e2b-ai-code-execution-sandboxes">Daytona vs E2B in 2026 - Northflank</a>
+- <a href="https://modal.com/blog/top-code-agent-sandbox-products">Top AI Code Sandbox Products 2025 - Modal</a>
+- <a href="https://lifo.sh/blog/ai-sandbox-comparison-2026">AI Sandbox Comparison 2026: E2B vs Lifo vs Daytona - Lifo</a></p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<span class="disabled">&larr; Prev</span>
+<span class="current">1</span>
+<a href="page-002.html">2</a>
+<a href="page-002.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>
