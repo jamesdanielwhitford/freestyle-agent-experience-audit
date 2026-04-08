@@ -1,0 +1,26 @@
+{
+  "name": "agent-tooling",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jamesdanielwhitford/freestyle-agent-experience-audit.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jamesdanielwhitford/freestyle-agent-experience-audit/issues"
+  },
+  "homepage": "https://github.com/jamesdanielwhitford/freestyle-agent-experience-audit#readme",
+  "dependencies": {
+    "@freestyle-sh/with-uv": "^0.2.8",
+    "freestyle-sandboxes": "^0.1.42",
+    "tsx": "^4.21.0"
+  }
+}
