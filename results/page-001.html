@@ -1,0 +1,1746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 1</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 1/3</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<span class="disabled">&larr; Prev</span>
+<span class="current">1</span>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-002.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-04-08T11-30-30-852Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-08T11-30-30-852Z" class="timestamp-link"><time datetime="2026-04-08T11:30:30.852Z" data-timestamp="2026-04-08T11:30:30.852Z">2026-04-08T11:30:30.852Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Use web search to build a feature comparison matrix for Freestyle (freestyle.sh)
+and its main competitors: E2B, Modal, Daytona, Blaxel, and Vercel. Cover VM startup
+speed, cold start times, boot disk access, reboot support, VM forking, full Linux
+support, GPU support, language support, MCP server availability, llms.txt, multi-tenant
+Git, serverless runs, deployments, free tier, and agent discoverability.</p></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-30-36-728Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-30-36-728Z" class="timestamp-link"><time datetime="2026-04-08T11:30:36.728Z" data-timestamp="2026-04-08T11:30:36.728Z">2026-04-08T11:30:36.728Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01RAa3wQkxf9o8goodNDKzCz"><div class="tool-header"><span class="tool-icon">⚙</span> Agent</div><div class="tool-description">Research Freestyle.sh features</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;prompt&#34;: &#34;Research the cloud sandbox/VM platform Freestyle (freestyle.sh) and find detailed information about its features. I need specific, accurate information about:\n\n1. VM startup speed / cold start times\n2. Boot disk access\n3. Reboot support\n4. VM forking capability\n5. Full Linux support\n6. GPU support\n7. Language support (what programming languages)\n8. MCP server availability\n9. llms.txt availability\n10. Multi-tenant Git support\n11. Serverless runs\n12. Deployments\n13. Free tier details\n14. Agent discoverability\n\nSearch the web for current information from freestyle.sh, their docs, blog posts, and any reviews or comparisons. Return all specific details you find, including any numbers (startup times in ms/seconds, pricing, etc.). Cite the URLs of sources you find.&#34;,
+  &#34;subagent_type&#34;: &#34;general-purpose&#34;,
+  &#34;run_in_background&#34;: true
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-30-36-734Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-30-36-734Z" class="timestamp-link"><time datetime="2026-04-08T11:30:36.734Z" data-timestamp="2026-04-08T11:30:36.734Z">2026-04-08T11:30:36.734Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Async agent launched successfully.
+agentId: ae714ddd8872ac536 (internal ID - do not mention to user. Use SendMessage with to: &#x27;ae714ddd8872ac536&#x27; to continue this agent.)
+The agent is working in the background. You will be notified automatically when it completes.
+Do not duplicate this agent&#x27;s work — avoid working with the same files or topics it is using. Work on non-overlapping tasks, or briefly tell the user what you launched and end your response.
+output_file: /private/tmp/claude-501/-Users-jameswhitford-Desktop-feature-comparison/99561459-14c6-472b-a00e-a86872c47fbf/tasks/ae714ddd8872ac536.output
+If asked, you can check progress before completion by using Read or Bash tail on the output file.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-30-42-453Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-30-42-453Z" class="timestamp-link"><time datetime="2026-04-08T11:30:42.453Z" data-timestamp="2026-04-08T11:30:42.453Z">2026-04-08T11:30:42.453Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01AKrJxHtHCerrypu3bJTvQh"><div class="tool-header"><span class="tool-icon">⚙</span> Agent</div><div class="tool-description">Research E2B features</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;prompt&#34;: &#34;Research the cloud sandbox platform E2B (e2b.dev) and find detailed information about its features. I need specific, accurate information about:\n\n1. VM startup speed / cold start times\n2. Boot disk access\n3. Reboot support\n4. VM forking capability\n5. Full Linux support\n6. GPU support\n7. Language support (what programming languages)\n8. MCP server availability\n9. llms.txt availability\n10. Multi-tenant Git support\n11. Serverless runs\n12. Deployments\n13. Free tier details\n14. Agent discoverability\n\nSearch the web for current information from e2b.dev, their docs, blog posts, GitHub, and any reviews or comparisons. Return all specific details you find, including any numbers (startup times in ms/seconds, pricing, etc.). Cite the URLs of sources you find.&#34;,
+  &#34;subagent_type&#34;: &#34;general-purpose&#34;,
+  &#34;run_in_background&#34;: true
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-30-42-456Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-30-42-456Z" class="timestamp-link"><time datetime="2026-04-08T11:30:42.456Z" data-timestamp="2026-04-08T11:30:42.456Z">2026-04-08T11:30:42.456Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Async agent launched successfully.
+agentId: ad4a74ea8706ff1b6 (internal ID - do not mention to user. Use SendMessage with to: &#x27;ad4a74ea8706ff1b6&#x27; to continue this agent.)
+The agent is working in the background. You will be notified automatically when it completes.
+Do not duplicate this agent&#x27;s work — avoid working with the same files or topics it is using. Work on non-overlapping tasks, or briefly tell the user what you launched and end your response.
+output_file: /private/tmp/claude-501/-Users-jameswhitford-Desktop-feature-comparison/99561459-14c6-472b-a00e-a86872c47fbf/tasks/ad4a74ea8706ff1b6.output
+If asked, you can check progress before completion by using Read or Bash tail on the output file.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-30-46-138Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-30-46-138Z" class="timestamp-link"><time datetime="2026-04-08T11:30:46.138Z" data-timestamp="2026-04-08T11:30:46.138Z">2026-04-08T11:30:46.138Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_014vrm5dZxYfCJxV96mRqsd6"><div class="tool-header"><span class="tool-icon">⚙</span> Agent</div><div class="tool-description">Research Modal features</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;prompt&#34;: &#34;Research the cloud compute platform Modal (modal.com) and find detailed information about its features. I need specific, accurate information about:\n\n1. VM startup speed / cold start times\n2. Boot disk access\n3. Reboot support\n4. VM forking capability\n5. Full Linux support\n6. GPU support\n7. Language support (what programming languages)\n8. MCP server availability\n9. llms.txt availability\n10. Multi-tenant Git support\n11. Serverless runs\n12. Deployments\n13. Free tier details\n14. Agent discoverability\n\nSearch the web for current information from modal.com, their docs, blog posts, GitHub, and any reviews or comparisons. Return all specific details you find, including any numbers (startup times in ms/seconds, pricing, etc.). Cite the URLs of sources you find.&#34;,
+  &#34;subagent_type&#34;: &#34;general-purpose&#34;,
+  &#34;run_in_background&#34;: true
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-30-46-143Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-30-46-143Z" class="timestamp-link"><time datetime="2026-04-08T11:30:46.143Z" data-timestamp="2026-04-08T11:30:46.143Z">2026-04-08T11:30:46.143Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Async agent launched successfully.
+agentId: a66a49d24818ef2a9 (internal ID - do not mention to user. Use SendMessage with to: &#x27;a66a49d24818ef2a9&#x27; to continue this agent.)
+The agent is working in the background. You will be notified automatically when it completes.
+Do not duplicate this agent&#x27;s work — avoid working with the same files or topics it is using. Work on non-overlapping tasks, or briefly tell the user what you launched and end your response.
+output_file: /private/tmp/claude-501/-Users-jameswhitford-Desktop-feature-comparison/99561459-14c6-472b-a00e-a86872c47fbf/tasks/a66a49d24818ef2a9.output
+If asked, you can check progress before completion by using Read or Bash tail on the output file.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-30-51-717Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-30-51-717Z" class="timestamp-link"><time datetime="2026-04-08T11:30:51.717Z" data-timestamp="2026-04-08T11:30:51.717Z">2026-04-08T11:30:51.717Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01VAFxA7dNopFUCWFwBBJN8G"><div class="tool-header"><span class="tool-icon">⚙</span> Agent</div><div class="tool-description">Research Daytona features</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;prompt&#34;: &#34;Research the cloud development environment platform Daytona (daytona.io) and find detailed information about its features. I need specific, accurate information about:\n\n1. VM startup speed / cold start times\n2. Boot disk access\n3. Reboot support\n4. VM forking capability\n5. Full Linux support\n6. GPU support\n7. Language support (what programming languages)\n8. MCP server availability\n9. llms.txt availability\n10. Multi-tenant Git support\n11. Serverless runs\n12. Deployments\n13. Free tier details\n14. Agent discoverability\n\nSearch the web for current information from daytona.io, their docs, blog posts, GitHub, and any reviews or comparisons. Return all specific details you find, including any numbers (startup times in ms/seconds, pricing, etc.). Cite the URLs of sources you find.&#34;,
+  &#34;subagent_type&#34;: &#34;general-purpose&#34;,
+  &#34;run_in_background&#34;: true
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-30-51-719Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-30-51-719Z" class="timestamp-link"><time datetime="2026-04-08T11:30:51.719Z" data-timestamp="2026-04-08T11:30:51.719Z">2026-04-08T11:30:51.719Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Async agent launched successfully.
+agentId: a85e5aa0a633d0f8d (internal ID - do not mention to user. Use SendMessage with to: &#x27;a85e5aa0a633d0f8d&#x27; to continue this agent.)
+The agent is working in the background. You will be notified automatically when it completes.
+Do not duplicate this agent&#x27;s work — avoid working with the same files or topics it is using. Work on non-overlapping tasks, or briefly tell the user what you launched and end your response.
+output_file: /private/tmp/claude-501/-Users-jameswhitford-Desktop-feature-comparison/99561459-14c6-472b-a00e-a86872c47fbf/tasks/a85e5aa0a633d0f8d.output
+If asked, you can check progress before completion by using Read or Bash tail on the output file.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-30-56-046Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-30-56-046Z" class="timestamp-link"><time datetime="2026-04-08T11:30:56.046Z" data-timestamp="2026-04-08T11:30:56.046Z">2026-04-08T11:30:56.046Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01P18PtpbycRdyU8675c5WtP"><div class="tool-header"><span class="tool-icon">⚙</span> Agent</div><div class="tool-description">Research Blaxel features</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;prompt&#34;: &#34;Research the cloud platform Blaxel (blaxel.ai or blaxel.com) and find detailed information about its features. I need specific, accurate information about:\n\n1. VM startup speed / cold start times\n2. Boot disk access\n3. Reboot support\n4. VM forking capability\n5. Full Linux support\n6. GPU support\n7. Language support (what programming languages)\n8. MCP server availability\n9. llms.txt availability\n10. Multi-tenant Git support\n11. Serverless runs\n12. Deployments\n13. Free tier details\n14. Agent discoverability\n\nSearch the web for current information from their website, docs, blog posts, GitHub, and any reviews or comparisons. Return all specific details you find, including any numbers (startup times in ms/seconds, pricing, etc.). Cite the URLs of sources you find.&#34;,
+  &#34;subagent_type&#34;: &#34;general-purpose&#34;,
+  &#34;run_in_background&#34;: true
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-30-56-047Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-30-56-047Z" class="timestamp-link"><time datetime="2026-04-08T11:30:56.047Z" data-timestamp="2026-04-08T11:30:56.047Z">2026-04-08T11:30:56.047Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Async agent launched successfully.
+agentId: aafd23ab492a06b89 (internal ID - do not mention to user. Use SendMessage with to: &#x27;aafd23ab492a06b89&#x27; to continue this agent.)
+The agent is working in the background. You will be notified automatically when it completes.
+Do not duplicate this agent&#x27;s work — avoid working with the same files or topics it is using. Work on non-overlapping tasks, or briefly tell the user what you launched and end your response.
+output_file: /private/tmp/claude-501/-Users-jameswhitford-Desktop-feature-comparison/99561459-14c6-472b-a00e-a86872c47fbf/tasks/aafd23ab492a06b89.output
+If asked, you can check progress before completion by using Read or Bash tail on the output file.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-01-108Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-01-108Z" class="timestamp-link"><time datetime="2026-04-08T11:31:01.108Z" data-timestamp="2026-04-08T11:31:01.108Z">2026-04-08T11:31:01.108Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01DDE3iNqkFuuTtYKUXAk9CR"><div class="tool-header"><span class="tool-icon">⚙</span> Agent</div><div class="tool-description">Research Vercel sandbox/VM features</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;prompt&#34;: &#34;Research Vercel (vercel.com) specifically focusing on its sandbox, VM, and compute features relevant to AI agent workloads. I need specific, accurate information about:\n\n1. VM startup speed / cold start times (serverless functions, edge functions)\n2. Boot disk access\n3. Reboot support\n4. VM forking capability\n5. Full Linux support\n6. GPU support\n7. Language support (what programming languages/runtimes)\n8. MCP server availability\n9. llms.txt availability\n10. Multi-tenant Git support\n11. Serverless runs\n12. Deployments\n13. Free tier details\n14. Agent discoverability / AI agent features\n\nSearch the web for current information from vercel.com, their docs, blog posts, and any reviews or comparisons. Return all specific details you find, including any numbers (startup times in ms/seconds, pricing, etc.). Cite the URLs of sources you find.&#34;,
+  &#34;subagent_type&#34;: &#34;general-purpose&#34;,
+  &#34;run_in_background&#34;: true
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-31-01-109Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-31-01-109Z" class="timestamp-link"><time datetime="2026-04-08T11:31:01.109Z" data-timestamp="2026-04-08T11:31:01.109Z">2026-04-08T11:31:01.109Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Async agent launched successfully.
+agentId: a8ff4972b881f865b (internal ID - do not mention to user. Use SendMessage with to: &#x27;a8ff4972b881f865b&#x27; to continue this agent.)
+The agent is working in the background. You will be notified automatically when it completes.
+Do not duplicate this agent&#x27;s work — avoid working with the same files or topics it is using. Work on non-overlapping tasks, or briefly tell the user what you launched and end your response.
+output_file: /private/tmp/claude-501/-Users-jameswhitford-Desktop-feature-comparison/99561459-14c6-472b-a00e-a86872c47fbf/tasks/a8ff4972b881f865b.output
+If asked, you can check progress before completion by using Read or Bash tail on the output file.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-04-069Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-04-069Z" class="timestamp-link"><time datetime="2026-04-08T11:31:04.069Z" data-timestamp="2026-04-08T11:31:04.069Z">2026-04-08T11:31:04.069Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>I've launched 6 parallel research agents, one per platform. They're all searching the web simultaneously for current feature data. I'll compile everything into a matrix once they all report back.</p></div></div></div>
+<div class="message user" id="msg-2026-04-08T11-31-04-146Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-08T11-31-04-146Z" class="timestamp-link"><time datetime="2026-04-08T11:31:04.146Z" data-timestamp="2026-04-08T11:31:04.146Z">2026-04-08T11:31:04.146Z</time></a></div><div class="message-content">
+<div class="user-content"><p><task-notification>
+<task-id>ae714ddd8872ac536</task-id>
+<tool-use-id>toolu_01RAa3wQkxf9o8goodNDKzCz</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-jameswhitford-Desktop-feature-comparison/99561459-14c6-472b-a00e-a86872c47fbf/tasks/ae714ddd8872ac536.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Research Freestyle.sh features" completed</summary>
+<p><result>Both WebSearch and WebFetch are blocked in this environment. I'm unable to access the internet to research Freestyle (freestyle.sh) in real time.</p>
+<p>Here is what I can tell you from my training data knowledge (cutoff August 2025), which may be incomplete or outdated given your current date of April 2026:</p>
+<p><strong>Freestyle (freestyle.sh)</strong> is a cloud sandbox/VM platform aimed at running code in isolated environments, particularly for AI agent workloads. However, as of my knowledge cutoff, it was a relatively early-stage or niche product, and I do not have reliable, specific details across all the data points you need (cold start numbers, exact pricing tiers, MCP server support, llms.txt availability, etc.) to give you the accurate, citable answers a feature comparison requires.</p>
+<p>To get the information you need, I would recommend:</p>
+<ol>
+<li><strong>Visiting https://freestyle.sh directly</strong> and checking their docs, pricing page, and changelog.</li>
+<li><strong>Checking https://freestyle.sh/llms.txt</strong> to see if they publish a machine-readable summary (many AI-era developer tools do).</li>
+<li><strong>Checking their docs site</strong> (likely docs.freestyle.sh or similar).</li>
+<li><strong>Searching GitHub</strong> for their repos or issues, which often contain benchmark data and feature discussions.</li>
+<li><strong>Checking their blog</strong> for posts about architecture (cold start times and forking are often announced in launch posts).</li>
+</ol>
+<p>To unblock this research in Claude Code, you or an admin would need to grant permission for the WebSearch and WebFetch tools. Once those are allowed, I can pull all of this directly and return the specific numbers and citations you need.</result>
+<usage><total_tokens>13700</total_tokens><tool_uses>6</tool_uses><duration_ms>21327</duration_ms></usage>
+</task-notification></p></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-06-775Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-06-775Z" class="timestamp-link"><time datetime="2026-04-08T11:31:06.775Z" data-timestamp="2026-04-08T11:31:06.775Z">2026-04-08T11:31:06.775Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The web tools need permission. Let me run the research directly instead.</p></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-06-902Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-06-902Z" class="timestamp-link"><time datetime="2026-04-08T11:31:06.902Z" data-timestamp="2026-04-08T11:31:06.902Z">2026-04-08T11:31:06.902Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_011apgExnuUo5TFFEjCjfXax"><div class="tool-header"><span class="tool-icon">⚙</span> ToolSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;select:WebSearch,WebFetch&#34;,
+  &#34;max_results&#34;: 2
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-31-06-902Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-31-06-902Z" class="timestamp-link"><time datetime="2026-04-08T11:31:06.902Z" data-timestamp="2026-04-08T11:31:06.902Z">2026-04-08T11:31:06.902Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &quot;type&quot;: &quot;tool_reference&quot;,
+  &quot;tool_name&quot;: &quot;WebSearch&quot;
+}</pre><pre class="json">{
+  &quot;type&quot;: &quot;tool_reference&quot;,
+  &quot;tool_name&quot;: &quot;WebFetch&quot;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-08-782Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-08-782Z" class="timestamp-link"><time datetime="2026-04-08T11:31:08.782Z" data-timestamp="2026-04-08T11:31:08.782Z">2026-04-08T11:31:08.782Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Now let me run all the searches in parallel.</p></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-09-612Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-09-612Z" class="timestamp-link"><time datetime="2026-04-08T11:31:09.612Z" data-timestamp="2026-04-08T11:31:09.612Z">2026-04-08T11:31:09.612Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01KgKdxL3ue2FSyr5YTzzks2"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;freestyle.sh features VM startup cold start forking MCP 2025 2026&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-10-434Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-10-434Z" class="timestamp-link"><time datetime="2026-04-08T11:31:10.434Z" data-timestamp="2026-04-08T11:31:10.434Z">2026-04-08T11:31:10.434Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01N7T2KxWipE2Jk7Yg63xnJp"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;E2B sandbox cold start speed forking GPU MCP server free tier 2025 2026&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-11-268Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-11-268Z" class="timestamp-link"><time datetime="2026-04-08T11:31:11.268Z" data-timestamp="2026-04-08T11:31:11.268Z">2026-04-08T11:31:11.268Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01Ezp4Tb8eBSbxn9b4RZemmS"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Modal.com cold start GPU support serverless free tier MCP agent 2025 2026&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-12-101Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-12-101Z" class="timestamp-link"><time datetime="2026-04-08T11:31:12.101Z" data-timestamp="2026-04-08T11:31:12.101Z">2026-04-08T11:31:12.101Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01JnPTB1wZBpRe6rEHRsJ8j3"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Daytona.io sandbox VM startup speed GPU MCP server free tier 2025 2026&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-12-494Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-12-494Z" class="timestamp-link"><time datetime="2026-04-08T11:31:12.494Z" data-timestamp="2026-04-08T11:31:12.494Z">2026-04-08T11:31:12.494Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01T5BW5tmgSMr3q1R6E2RTZG"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Blaxel AI platform features sandbox MCP server agent discoverability 2025 2026&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-12-937Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-12-937Z" class="timestamp-link"><time datetime="2026-04-08T11:31:12.937Z" data-timestamp="2026-04-08T11:31:12.937Z">2026-04-08T11:31:12.937Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01DWNkxH4BMmma9KxXDigsVN"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Vercel sandbox VM cold start GPU MCP server agent free tier 2025 2026&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-31-23-804Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-31-23-804Z" class="timestamp-link"><time datetime="2026-04-08T11:31:23.804Z" data-timestamp="2026-04-08T11:31:23.804Z">2026-04-08T11:31:23.804Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Daytona.io sandbox VM startup speed GPU MCP server free tier 2025 2026&quot;
+
+Links: [{&quot;title&quot;:&quot;Daytona - Secure Infrastructure for Running AI-Generated Code&quot;,&quot;url&quot;:&quot;https://www.daytona.io/&quot;},{&quot;title&quot;:&quot;Top Daytona.io alternatives for running AI code in secure sandboxed environments | Blog — Northflank&quot;,&quot;url&quot;:&quot;https://northflank.com/blog/top-daytona-io-alternatives-for-running-ai-code-in-secure-sandboxed-environments&quot;},{&quot;title&quot;:&quot;Best AI Agent Sandboxes - Secure Execution Guide 2026 | Fast.io&quot;,&quot;url&quot;:&quot;https://fast.io/resources/best-ai-agent-sandboxes/&quot;},{&quot;title&quot;:&quot;AI Agent Sandboxes Compared | Ry Walker Research | Ry Walker&quot;,&quot;url&quot;:&quot;https://rywalker.com/research/ai-agent-sandboxes&quot;},{&quot;title&quot;:&quot;Daytona · GitHub&quot;,&quot;url&quot;:&quot;https://github.com/daytonaio&quot;},{&quot;title&quot;:&quot;GitHub - daytonaio/daytona: Daytona is a Secure and Elastic Infrastructure for Running AI-Generated Code · GitHub&quot;,&quot;url&quot;:&quot;https://github.com/daytonaio/daytona&quot;},{&quot;title&quot;:&quot;Sandboxes | Daytona&quot;,&quot;url&quot;:&quot;https://www.daytona.io/docs/en/sandboxes/&quot;},{&quot;title&quot;:&quot;11 Best Sandbox Runners in 2026 | Better Stack Community&quot;,&quot;url&quot;:&quot;https://betterstack.com/community/comparisons/best-sandbox-runners/&quot;},{&quot;title&quot;:&quot;Daytona Dev Environment Pricing vs Top Alternatives for 2026 | Blaxel Blog&quot;,&quot;url&quot;:&quot;https://blaxel.ai/blog/daytona-dev-environment-pricing-alternatives&quot;},{&quot;title&quot;:&quot;AI Sandbox Comparison 2026: E2B vs Lifo vs Daytona | Lifo&quot;,&quot;url&quot;:&quot;https://lifo.sh/blog/ai-sandbox-comparison-2026&quot;}]
+
+Based on the search results, here&#x27;s what I found about Daytona.io regarding sandbox VM startup speed, GPU support, MCP server capabilities, and free tier options:
+
+## Startup Speed
+
+Daytona achieves sub-90ms sandbox creation from code to execution, with some configurations reaching 27ms. It focuses on speed with sub-90ms cold starts.
+
+## GPU Support
+
+E2B and Daytona focus on CPU-only sandboxes, meaning Daytona does not currently offer GPU support. Modal provides serverless Python sandboxes with GPU support as an alternative if GPU capabilities are needed.
+
+## MCP Server
+
+While the search results reference MCP capabilities, the information about Daytona&#x27;s specific MCP server implementation is limited. The results mention that AIO Sandbox provides pre-configured MCP servers for browser, file, shell, and document processing, but Daytona&#x27;s MCP server details aren&#x27;t extensively covered.
+
+## Free Tier
+
+Daytona offers a free tier available for development. Additionally, users get $200 in free credits to start, and startups can apply for up to $50,000 in additional credits.
+
+## Recent Developments (2025-2026)
+
+Daytona pivoted in February 2025 from development environments to become infrastructure for running AI-generated code. In February 2026 Daytona raised a $24M Series A to expand its agentic infrastructure platform.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.
+[result-id: r1]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-31-24-478Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-31-24-478Z" class="timestamp-link"><time datetime="2026-04-08T11:31:24.478Z" data-timestamp="2026-04-08T11:31:24.478Z">2026-04-08T11:31:24.478Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Modal.com cold start GPU support serverless free tier MCP agent 2025 2026&quot;
+
+Links: [{&quot;title&quot;:&quot;Top Serverless GPU Clouds for 2026: Comparing Runpod, Modal, and More&quot;,&quot;url&quot;:&quot;https://www.runpod.io/articles/guides/top-serverless-gpu-clouds&quot;},{&quot;title&quot;:&quot;Modal: High-performance AI infrastructure&quot;,&quot;url&quot;:&quot;https://modal.com/&quot;},{&quot;title&quot;:&quot;Modal Labs Deep Dive: The Serverless Engine Redefining AI Development&quot;,&quot;url&quot;:&quot;https://skywork.ai/skypage/en/Modal-Labs-Deep-Dive-The-Serverless-Engine-Redefining-AI-Development/1972878452262105088&quot;},{&quot;title&quot;:&quot;Modal + Mistral 3: 10x faster cold starts with GPU snapshotting&quot;,&quot;url&quot;:&quot;https://modal.com/blog/mistral-3&quot;},{&quot;title&quot;:&quot;AWS Marketplace: Modal&quot;,&quot;url&quot;:&quot;https://aws.amazon.com/marketplace/pp/prodview-j727623xqhh2k&quot;},{&quot;title&quot;:&quot;Modal vs Baseten: Which AI deployment platform fits your stack? | Blog — Northflank&quot;,&quot;url&quot;:&quot;https://northflank.com/blog/modal-vs-baseten-vs-northflank&quot;},{&quot;title&quot;:&quot;What is Modal AI? A deep dive into the serverless AI platform | eesel AI&quot;,&quot;url&quot;:&quot;https://www.eesel.ai/blog/modal-ai&quot;},{&quot;title&quot;:&quot;How to Run Serverless GPU AI with Modal | Edlitera&quot;,&quot;url&quot;:&quot;https://www.edlitera.com/blog/posts/serverless-gpu-ai-modal&quot;},{&quot;title&quot;:&quot;Top 5 serverless GPU providers&quot;,&quot;url&quot;:&quot;https://modal.com/blog/serverless-gpu-article&quot;},{&quot;title&quot;:&quot;Serverless GPU Platforms: RunPod, Modal, and Beam Compared | Introl Blog&quot;,&quot;url&quot;:&quot;https://introl.com/blog/serverless-gpu-platforms-runpod-modal-beam-comparison-guide-2025&quot;}]
+
+Based on the search results, here&#x27;s what I found about Modal.com&#x27;s cold start GPU support, serverless free tier, and MCP agent capabilities:
+
+## Cold Start Performance
+
+Modal offers lightning-fast startups with cold start times typically ranging between 2–4 seconds. More impressively, Modal offers cutting-edge features like GPU memory snapshotting that can reduce median cold start time for some models by almost 10x, from almost two minutes to just ten seconds. Additionally, Modal&#x27;s custom infrastructure allows it to spin up GPU-enabled containers in as little as one second.
+
+## Free Tier
+
+Modal offers a generous free tier which includes a $30 monthly credit for compute usage. They have a pretty generous free tier that gives you $30 in compute credits each month, which for most people is plenty to build, test, and even run small personal projects without ever pulling out a credit card.
+
+## MCP Agent Support
+
+The search results do mention MCP (Model Context Protocol) support. Modal is relied upon to handle massive spikes in volume for evals, RL environments, and MCP servers. This indicates that Modal is being used to host and scale MCP servers, though the search results don&#x27;t provide extensive details about MCP agent-specific features.
+
+The search results confirm that Modal is a mature serverless GPU platform as of 2025-2026, with Modal Labs closing an $87 million Series B in September 2025, valuing the company at $1.1 billion.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.
+[result-id: r2]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-31-24-890Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-31-24-890Z" class="timestamp-link"><time datetime="2026-04-08T11:31:24.890Z" data-timestamp="2026-04-08T11:31:24.890Z">2026-04-08T11:31:24.890Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Vercel sandbox VM cold start GPU MCP server agent free tier 2025 2026&quot;
+
+Links: [{&quot;title&quot;:&quot;Where to Host MCP Servers for Free: Cloudflare, Vercel, and More (2026) | MCP Playground&quot;,&quot;url&quot;:&quot;https://mcpplaygroundonline.com/blog/free-mcp-server-hosting-cloudflare-vercel-guide&quot;},{&quot;title&quot;:&quot;Use Vercel&#x27;s MCP server&quot;,&quot;url&quot;:&quot;https://vercel.com/docs/agent-resources/vercel-mcp&quot;},{&quot;title&quot;:&quot;What’s the best code execution sandbox for AI agents in 2026? | Blog — Northflank&quot;,&quot;url&quot;:&quot;https://northflank.com/blog/best-code-execution-sandbox-for-ai-agents&quot;},{&quot;title&quot;:&quot;How to Deploy MCP Servers: Vercel vs Railway vs Render vs Heroku vs Fly.io (2026 Guide) | MCP Playground&quot;,&quot;url&quot;:&quot;https://mcpplaygroundonline.com/blog/deploy-mcp-server-vercel-railway-render-heroku-flyio&quot;},{&quot;title&quot;:&quot;11 Best Sandbox Runners in 2026 | Better Stack Community&quot;,&quot;url&quot;:&quot;https://betterstack.com/community/comparisons/best-sandbox-runners/&quot;},{&quot;title&quot;:&quot;Top Vercel Sandbox alternatives for secure AI code execution and sandbox environments | Blog — Northflank&quot;,&quot;url&quot;:&quot;https://northflank.com/blog/top-vercel-sandbox-alternatives-for-secure-ai-code-execution-and-sandbox-environments&quot;},{&quot;title&quot;:&quot;Vercel Sandbox pricing and limits&quot;,&quot;url&quot;:&quot;https://vercel.com/docs/vercel-sandbox/pricing&quot;},{&quot;title&quot;:&quot;Top AI sandbox platforms in 2026, ranked | Blog — Northflank&quot;,&quot;url&quot;:&quot;https://northflank.com/blog/top-ai-sandbox-platforms-for-code-execution&quot;},{&quot;title&quot;:&quot;Deploy MCP Servers to Production: 2025 Cloud Guide | Ekamoira Blog&quot;,&quot;url&quot;:&quot;https://www.ekamoira.com/blog/mcp-servers-cloud-deployment-guide&quot;},{&quot;title&quot;:&quot;10 Best Code Execution Sandboxes for AI Agents (2026) | Fastio&quot;,&quot;url&quot;:&quot;https://fast.io/resources/best-code-execution-sandboxes-ai-agents/&quot;}]
+
+I&#x27;ve completed the web search for your query. Here&#x27;s a summary of the key findings:
+
+## Vercel Sandbox VM &amp; Cold Starts
+
+Vercel Sandbox runs inside Firecracker microVMs powered by Vercel&#x27;s Fluid compute model, which means you are only billed for active CPU time — not I/O wait — resulting in up to 95% lower cost for bursty or I/O-bound workloads.
+
+Vercel is best for Next.js MCP servers with cold starts ~250ms with Fluid Compute. In comparison, Vercel and Lambda cold starts are typically 1-3 seconds.
+
+## Session Duration &amp; GPU Support
+
+Vercel Sandbox is in Beta and available to customers on all plans with up to 45m execution times. However, E2B, Vercel Sandbox, Cloudflare Sandboxes, and Blaxel do not currently offer GPU-accelerated sandboxes.
+
+## MCP Server Deployment on Vercel
+
+Vercel is ideal if you&#x27;re already in the Next.js ecosystem with their free Hobby tier including serverless functions with automatic scaling. Vercel&#x27;s Hobby plan is the only genuinely free always-on option (150k function invocations/month).
+
+## Free Tier Sandbox Limits
+
+The Hobby plan includes 5 CPU hours, 420 GB-hr provisioned memory, 20 GB network bandwidth, and 5,000 sandbox creations per month for free.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.
+[result-id: r3]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-31-25-358Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-31-25-358Z" class="timestamp-link"><time datetime="2026-04-08T11:31:25.358Z" data-timestamp="2026-04-08T11:31:25.358Z">2026-04-08T11:31:25.358Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;freestyle.sh features VM startup cold start forking MCP 2025 2026&quot;
+
+Links: [{&quot;title&quot;:&quot;Freestyle VMs - Sandboxes for AI Agents&quot;,&quot;url&quot;:&quot;https://www.freestyle.sh/products/vms&quot;},{&quot;title&quot;:&quot;About Freestyle VMs&quot;,&quot;url&quot;:&quot;https://docs.freestyle.sh/v2/vms/about&quot;},{&quot;title&quot;:&quot;Freestyle - Manage AI-Generated Code&quot;,&quot;url&quot;:&quot;https://www.freestyle.sh/&quot;},{&quot;title&quot;:&quot;freestyle.sh · GitHub&quot;,&quot;url&quot;:&quot;https://github.com/freestyle-sh&quot;},{&quot;title&quot;:&quot;Deprecating the Dev Server API - Freestyle&quot;,&quot;url&quot;:&quot;https://docs.freestyle.sh/blog/deprecating-dev-servers&quot;},{&quot;title&quot;:&quot;Roadmap - Freestyle&quot;,&quot;url&quot;:&quot;https://docs.freestyle.sh/roadmap&quot;},{&quot;title&quot;:&quot;Launch HN: Freestyle – Sandboxes for Coding Agents | Hacker News&quot;,&quot;url&quot;:&quot;https://news.ycombinator.com/item?id=47663147&quot;},{&quot;title&quot;:&quot;Overview - Freestyle&quot;,&quot;url&quot;:&quot;https://docs.freestyle.sh/vms/index&quot;},{&quot;title&quot;:&quot;Getting Started - Freestyle&quot;,&quot;url&quot;:&quot;https://docs.freestyle.sh/getting-started&quot;},{&quot;title&quot;:&quot;Building an AI App Builder - Freestyle&quot;,&quot;url&quot;:&quot;https://docs.freestyle.sh/guides/app-builder&quot;}]
+
+Based on the search results, here&#x27;s what I found about freestyle.sh features related to VM startup, cold start, forking, and MCP:
+
+## VM Startup &amp; Cold Start
+
+Freestyle VMs start in under a second, pause and resume instantly, and can be forked mid-execution without interruption. More specifically, VMs provision in under 800ms from API request to running machine. This speed comes from memory snapshots—when you get a VM, it&#x27;s already booted and running, not starting from a powered-off state.
+
+## Forking
+
+Freestyle has a system to fork running VMs in &lt;50ms — getting a full copy with the exact same memory and state. A running VM can be forked without noticeably pausing the original, with minimal performance impact. If an AI agent is browsing a website and wants to explore 20 different paths, fork the VM 20 times and let each copy explore independently—all from the same browser state.
+
+## MCP Support
+
+Freestyle VM MCP lets you connect your AI to your VMs in minutes. The MCP has tools for listing files, executing commands, search and replace and much more. It is designed based on the tools in Claude Code. Additionally, Freestyle is working on Freestyle Cloud MCP to allow your AI to pull your debug logs and help you build with Freestyle more easily.
+
+## Timeline Context
+
+The VM solution reached production around September 2025 with initial response times in hundreds of milliseconds.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.
+[result-id: r4]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-31-25-999Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-31-25-999Z" class="timestamp-link"><time datetime="2026-04-08T11:31:25.999Z" data-timestamp="2026-04-08T11:31:25.999Z">2026-04-08T11:31:25.999Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Blaxel AI platform features sandbox MCP server agent discoverability 2025 2026&quot;
+
+Links: [{&quot;title&quot;:&quot;Blaxel: The Persistent Sandbox Platform&quot;,&quot;url&quot;:&quot;https://blaxel.ai/&quot;},{&quot;title&quot;:&quot;Blaxel Documentation - Documentation&quot;,&quot;url&quot;:&quot;https://docs.blaxel.ai/Overview&quot;},{&quot;title&quot;:&quot;Best AI Agents in March 2026 | Blaxel Blog&quot;,&quot;url&quot;:&quot;https://blaxel.ai/blog/best-ai-agents&quot;},{&quot;title&quot;:&quot;Top Blaxel alternatives for AI sandbox and agent infrastructure in 2026 | Blog — Northflank&quot;,&quot;url&quot;:&quot;https://northflank.com/blog/top-blaxel-alternatives-for-ai-sandbox-and-agent-infrastructure&quot;},{&quot;title&quot;:&quot;What Is an MCP Server? | Blaxel Blog&quot;,&quot;url&quot;:&quot;https://blaxel.ai/blog/what-is-an-mcp-server&quot;},{&quot;title&quot;:&quot;Blog | Blaxel&quot;,&quot;url&quot;:&quot;https://blaxel.ai/blog&quot;},{&quot;title&quot;:&quot;Daytona Dev Environment Pricing vs Top Alternatives for 2026 | Blaxel Blog&quot;,&quot;url&quot;:&quot;https://blaxel.ai/blog/daytona-dev-environment-pricing-alternatives&quot;},{&quot;title&quot;:&quot;Sandboxes that persist forever, with 25ms resumes | Blaxel&quot;,&quot;url&quot;:&quot;https://blaxel.ai/sandbox&quot;},{&quot;title&quot;:&quot;Sandbox Management for AI Coding Agents | Blaxel Blog&quot;,&quot;url&quot;:&quot;https://blaxel.ai/blog/sandbox-management-for-ai-coding-agents&quot;},{&quot;title&quot;:&quot;Blaxel: The perpetual sandbox platform | Y Combinator&quot;,&quot;url&quot;:&quot;https://www.ycombinator.com/companies/blaxel&quot;}]
+
+Based on the search results, here&#x27;s what I found about Blaxel AI platform features related to sandbox, MCP server, and agent discoverability:
+
+## Blaxel Platform Overview
+
+Blaxel is a perpetual sandbox platform built for AI agents. Blaxel came out of YC&#x27;s Spring 2025 batch with a clear thesis: the cloud wasn&#x27;t built for AI agents.
+
+## Key Sandbox Features
+
+Blaxel Sandboxes resume from standby in ~25ms with full memory state. Unlike traditional sandboxes that expire or suffer from cold starts, our sandboxes automatically scale to zero after 1s of inactivity and resume in under 25ms with full memory state preserved — allowing you to keep millions of secure sandboxes on standby indefinitely.
+
+## MCP Server Features
+
+Run remote MCP servers alongside the agent loop and sandboxes, fully HTTP stream compatible. MCP Servers Hosting: Expose capabilities and execute tool calls using MCP. 
+
+A built-in MCP server is included in every sandbox for instant integration via remote tool calls.
+
+## Agent Discoverability
+
+An MCP server exposes tools through a standardized protocol that AI agents discover dynamically at runtime. Agents send a tools/list request to enumerate available capabilities. Three architectural shifts: tools become shared infrastructure, each server runs in its own isolation boundary, and agents discover tools dynamically via tools/list instead of hardcoding.
+
+## Observability
+
+Get 360° visibility on your agents and their tools throughout Blaxel with a modern AI-native observability suite.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.
+[result-id: r5]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-31-26-218Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-31-26-218Z" class="timestamp-link"><time datetime="2026-04-08T11:31:26.218Z" data-timestamp="2026-04-08T11:31:26.218Z">2026-04-08T11:31:26.218Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;E2B sandbox cold start speed forking GPU MCP server free tier 2025 2026&quot;
+
+Links: [{&quot;title&quot;:&quot;11 Best Sandbox Runners in 2026 | Better Stack Community&quot;,&quot;url&quot;:&quot;https://betterstack.com/community/comparisons/best-sandbox-runners/&quot;},{&quot;title&quot;:&quot;E2B (Python) MCP Server: An AI Engineer&#x27;s Deep Dive&quot;,&quot;url&quot;:&quot;https://skywork.ai/skypage/en/ai-engineer-deep-dive/1978019564182491136&quot;},{&quot;title&quot;:&quot;GitHub - HeurisTech/e2b-sandbox-mcp&quot;,&quot;url&quot;:&quot;https://github.com/HeurisTech/e2b-sandbox-mcp&quot;},{&quot;title&quot;:&quot;E2B (TS) MCP Server: The Definitive Guide for AI Engineers&quot;,&quot;url&quot;:&quot;https://skywork.ai/skypage/en/e2b-mcp-server-ai-engineers-guide/1981247470895550464&quot;},{&quot;title&quot;:&quot;E2B sandboxes | Docker Docs&quot;,&quot;url&quot;:&quot;https://docs.docker.com/ai/mcp-catalog-and-toolkit/e2b-sandboxes/&quot;},{&quot;title&quot;:&quot;AI Agent Sandboxes Compared | Ry Walker Research | Ry Walker&quot;,&quot;url&quot;:&quot;https://rywalker.com/research/ai-agent-sandboxes&quot;},{&quot;title&quot;:&quot;10 Best Code Execution Sandboxes for AI Agents (2026) | Fastio&quot;,&quot;url&quot;:&quot;https://fast.io/resources/best-code-execution-sandboxes-ai-agents/&quot;},{&quot;title&quot;:&quot;What are the 10 Best E2B Alternatives to Deploy AI Sandboxes - ZenML Blog&quot;,&quot;url&quot;:&quot;https://www.zenml.io/blog/e2b-alternatives&quot;},{&quot;title&quot;:&quot;E2B Review 2026 | AI Infrastructure &amp; MLOps Tool - Pricing &amp; Features&quot;,&quot;url&quot;:&quot;https://aiagentslist.com/agents/e2b&quot;},{&quot;title&quot;:&quot;Best RunPod Alternatives for CPU Sandboxes in 2026 | Blaxel Blog&quot;,&quot;url&quot;:&quot;https://blaxel.ai/blog/runpod-alternatives&quot;}]
+
+Here are the search results for E2B sandbox features and pricing in 2025-2026:
+
+## Cold Start Speed
+
+E2B ensures sandboxes launch in under 200 ms, eliminating cold start delays. More specifically, E2B achieves 150 to 200ms cold-start boot from snapshot restore.
+
+## Forking &amp; VM Features
+
+While the search results don&#x27;t show E2B offering forking capabilities, other platforms like Freestyle support agents forking a running VM without pausing it, with VMs that can be hibernated to disk so billing stops while state is fully preserved. For comparison, alternative platforms like Sprites offer hibernation, fast resume, and forking built into the sandbox lifecycle, allowing you to fork sandboxes to clone full execution state for parallel branches or A/B execution paths.
+
+## GPU Support
+
+The search results don&#x27;t confirm GPU support in E2B&#x27;s standard offering. However, future roadmap expectations include support for more complex environments like GPU-enabled sandboxes. For GPU workloads, Modal is recommended if your workloads are GPU-heavy and Python-first.
+
+## MCP Server
+
+The E2B MCP server and sandbox infrastructure core technology is open-source (Apache-2.0). An E2B MCP server enables AI assistants to create, control, and interact with virtual desktop environments through E2B&#x27;s secure cloud sandboxes.
+
+## Free Tier (2025-2026)
+
+E2B&#x27;s Hobby plan is free and includes a one-time $100 usage credit, community support, up to 1-hour sessions, and 20 concurrent sandboxes with no credit card required.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.
+[result-id: r6]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-28-639Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-28-639Z" class="timestamp-link"><time datetime="2026-04-08T11:31:28.639Z" data-timestamp="2026-04-08T11:31:28.639Z">2026-04-08T11:31:28.639Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Good initial data. Now let me fetch the primary docs pages for more precise details on the gaps.</p></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-31-320Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-31-320Z" class="timestamp-link"><time datetime="2026-04-08T11:31:31.320Z" data-timestamp="2026-04-08T11:31:31.320Z">2026-04-08T11:31:31.320Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01Nsss7QcRBKQV3zgUY1Dwvy"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://docs.freestyle.sh/v2/vms/about&#34;,
+  &#34;prompt&#34;: &#34;Extract all technical details: VM startup time, cold start time, boot disk access, reboot support, VM forking speed, Linux support details, GPU support, language support, MCP server, llms.txt, multi-tenant git, serverless runs, deployments, free tier pricing.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-32-017Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-32-017Z" class="timestamp-link"><time datetime="2026-04-08T11:31:32.017Z" data-timestamp="2026-04-08T11:31:32.017Z">2026-04-08T11:31:32.017Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01KnqEqoTG1GLXZ4hieqd5DW"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://www.freestyle.sh/products/vms&#34;,
+  &#34;prompt&#34;: &#34;Extract all technical details: VM startup time, cold start time, boot disk access, reboot support, VM forking speed, Linux support details, GPU support, language support, MCP server, multi-tenant git, serverless runs, deployments, free tier pricing.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-32-841Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-32-841Z" class="timestamp-link"><time datetime="2026-04-08T11:31:32.841Z" data-timestamp="2026-04-08T11:31:32.841Z">2026-04-08T11:31:32.841Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01523E7HPhiEWbZSvHzUe6Jq"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://docs.freestyle.sh/roadmap&#34;,
+  &#34;prompt&#34;: &#34;List all roadmap items, especially GPU support, reboot, forking, multi-tenant git, MCP, llms.txt, agent discoverability.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-34-074Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-34-074Z" class="timestamp-link"><time datetime="2026-04-08T11:31:34.074Z" data-timestamp="2026-04-08T11:31:34.074Z">2026-04-08T11:31:34.074Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_017nZqvuUBpsNE84y8ZNhpHG"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://e2b.dev/docs&#34;,
+  &#34;prompt&#34;: &#34;Extract all technical details: VM/sandbox startup time, cold start time, boot disk access, reboot support, VM forking speed, Linux support, GPU support, language support, MCP server, llms.txt, multi-tenant git, serverless runs, deployments, free tier pricing.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-34-926Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-34-926Z" class="timestamp-link"><time datetime="2026-04-08T11:31:34.926Z" data-timestamp="2026-04-08T11:31:34.926Z">2026-04-08T11:31:34.926Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01YKbvMrKZTicmKgzWLXMatK"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://www.daytona.io/docs/en/sandboxes/&#34;,
+  &#34;prompt&#34;: &#34;Extract all technical details: sandbox startup time, cold start time, boot disk access, reboot support, forking, Linux support, GPU support, language support, MCP server, llms.txt, multi-tenant git, serverless runs, deployments, free tier pricing.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-35-712Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-35-712Z" class="timestamp-link"><time datetime="2026-04-08T11:31:35.712Z" data-timestamp="2026-04-08T11:31:35.712Z">2026-04-08T11:31:35.712Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01LnMhsibDBqF527vJbuqeMv"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://docs.blaxel.ai/Overview&#34;,
+  &#34;prompt&#34;: &#34;Extract all technical details: sandbox startup/resume time, cold start time, boot disk access, reboot support, forking, Linux support, GPU support, language support, MCP server, llms.txt, multi-tenant git, serverless runs, deployments, free tier pricing, agent discoverability.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-36-876Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-36-876Z" class="timestamp-link"><time datetime="2026-04-08T11:31:36.876Z" data-timestamp="2026-04-08T11:31:36.876Z">2026-04-08T11:31:36.876Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01AVVBPdMyBs4KwuLb2mf2TC"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://vercel.com/docs/vercel-sandbox/pricing&#34;,
+  &#34;prompt&#34;: &#34;Extract all pricing, limits, and technical details about Vercel Sandbox: startup time, CPU hours, memory, GPU support, language support, free tier limits, MCP server.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-31-37-728Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-31-37-728Z" class="timestamp-link"><time datetime="2026-04-08T11:31:37.728Z" data-timestamp="2026-04-08T11:31:37.728Z">2026-04-08T11:31:37.728Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>---
+title: Vercel Sandbox pricing and limits
+product: vercel
+url: /docs/vercel-sandbox/pricing
+type: reference
+prerequisites:
+  - /docs/vercel-sandbox
+related:
+  - /docs/notifications
+  - /docs/plans/hobby
+  - /docs/plans/pro-plan
+  - /docs/spend-management
+  - /docs/vercel-sandbox/concepts/snapshots
+summary: &quot;Understand how Vercel Sandbox billing works, what&#x27;s included in each plan, and the limits that apply.&quot;
+install_vercel_plugin: npx plugins add vercel/vercel-plugin
+---
+
+# Vercel Sandbox pricing and limits
+
+Vercel Sandbox usage is metered across several dimensions. This page explains how billing works for each plan, what limits apply, and how to estimate costs.
+
+## Pricing
+
+|  | **Hobby** (Included) | **Pro** (Per month) | **Enterprise** (Per month) |
+| --- | --- | --- | --- |
+| Sandbox Active CPU | 5 hours/month | $0.128/hour | $0.128/hour |
+| Sandbox Provisioned Memory | 420 GB-hours/month | $0.0212/GB-hour | $0.0212/GB-hour |
+| Sandbox Creations | 5,000/month | $0.60/1M | $0.60/1M |
+| Sandbox Data Transfer | 20 GB/month | $0.15/GB | $0.15/GB |
+| Sandbox Storage | 15 GB (lifetime) | $0.08/GB-month | $0.08/GB-month |
+| Concurrent Sandboxes | 10 | 2,000 | 2,000 |
+| Max Runtime Duration | 45 minutes | 5 hours | 5 hours |
+| vCPU Allocation Rate | 40/10 min | 200/min | 400/min |
+
+
+On each billing cycle, Hobby plans receive a monthly allotment of Sandbox usage at no cost. Pro and Enterprise plans are charged based on usage.
+
+Once you exceed your included limit on Hobby, sandbox creation is [paused](#hobby) until the next billing cycle. Pro and Enterprise usage is charged against your account.
+
+## Billing information
+
+### Hobby
+
+Sandbox is free for Hobby users within the usage limits detailed above.
+
+Vercel sends you [notifications](/docs/notifications#on-demand-usage-notifications) as you approach your usage limits. You **will not be charged** for any additional usage. Once you exceed the limits, sandbox creation is paused until 30 days have passed since you first used the feature.
+
+To continue using Sandbox after exceeding your limits, [upgrade to Pro](/docs/plans/hobby#upgrading-to-pro).
+
+### Pro
+
+All Sandbox usage on Pro plans is charged against your [$20/month credit](/docs/plans/pro-plan#credit-and-usage-allocation). After the credit is exhausted, usage is billed at the rates shown above.
+
+To control costs, configure [Spend Management](/docs/spend-management) to receive alerts or pause projects when you reach a specified amount.
+
+### Enterprise
+
+Enterprise plans use the same list pricing as Pro. Contact your account team for volume discounts or higher limits.
+
+[Contact sales](/contact/sales) for custom pricing.
+
+## Understanding the metrics
+
+Vercel tracks Sandbox usage across five metrics. Select a metric in the pricing table above to jump to its description.
+
+### Active CPU
+
+The amount of time your code actively uses the CPU, measured in hours. Time spent waiting for I/O (such as network requests, database queries, or AI model calls) does not count toward Active CPU.
+
+You can provision 1 or an even number of vCPUs between 2 and 32 [depending on your plan](/docs/vercel-sandbox/pricing#resource-limits). The default is 2 vCPUs.
+
+### Provisioned Memory
+
+The memory allocated to your sandbox (in GB) multiplied by the time it runs (in hours). Each vCPU includes 2 GB of memory. For example, a 4 vCPU sandbox with 8 GB of memory running for 30 minutes uses:
+
+```
+8 GB × 0.5 hours = 4 GB-hours
+```
+
+### Sandbox Creations
+
+The number of times you call `Sandbox.create()`. Each creation counts as one, regardless of how long the sandbox runs.
+
+### Network
+
+The total data transferred in and out of your sandbox, measured in GB. This includes package downloads, API calls, and traffic through exposed ports.
+
+### Snapshot Storage
+
+The storage used by [snapshots](/docs/vercel-sandbox/concepts/snapshots), measured in GB per month.
+
+## Example calculations
+
+The following examples show estimated costs for common scenarios on Pro/Enterprise plans.
+
+| Scenario           | Duration | vCPUs | Memory | Active CPU Cost | Memory Cost | Total  |
+| ------------------ | -------- | ----- | ------ | --------------- | ----------- | ------ |
+| Quick test         | 2 min    | 1     | 2 GB   | $0.004          | $0.001      | ~$0.01 |
+| AI code validation | 5 min    | 2     | 4 GB   | $0.02           | $0.007      | ~$0.03 |
+| Build and test     | 30 min   | 4     | 8 GB   | $0.26           | $0.08       | ~$0.34 |
+| Long-running task  | 2 hr     | 8     | 16 GB  | $2.05           | $0.68       | ~$2.73 |
+
+&gt; **💡 Note:** These estimates assume 100% CPU utilization. Actual Active CPU costs are often lower because time spent waiting for I/O is not billed.
+
+Sandbox creation costs are minimal at $0.60 per million creations ($0.0000006 per creation).
+
+## Limits
+
+### Resource limits
+
+| Plan       | Maximum vCPUs | Maximum memory | Maximum open ports |
+| ---------- | ------------- | -------------- | ------------------ |
+| Hobby      | 4             | 8GB            | 15                 |
+| Pro        | 8             | 16GB           | 15                 |
+| Enterprise | 32            | 64GB           | 15                 |
+
+### Runtime limits
+
+The default timeout is 5 minutes. You can configure this using the `timeout` option when creating a sandbox, and extend it using `sandbox.extendTimeout()`. See [Working with Sandbox](/docs/vercel-sandbox/working-with-sandbox#execute-long-running-tasks) for details.
+
+| Plan       | Maximum duration |
+| ---------- | ---------------- |
+| Hobby      | 45 minutes       |
+| Pro        | 5 hours          |
+| Enterprise | 5 hours          |
+
+### Concurrency limits
+
+| Plan       | Concurrent sandboxes |
+| ---------- | -------------------- |
+| Hobby      | 10                   |
+| Pro        | 2,000                |
+| Enterprise | 2,000                |
+
+### Rate limits
+
+The number of vCPUs you can allocate to new sandboxes is rate-limited by plan.
+
+| Plan       | vCPU allocation limit   |
+| ---------- | ----------------------- |
+| Hobby      | 40 vCPUs per 10 minutes |
+| Pro        | 200 vCPUs per minute    |
+| Enterprise | 400 vCPUs per minute    |
+
+For example, with the Pro plan limit of 200 vCPUs per minute, you can create 25 sandboxes with 8 vCPUs each, or 100 sandboxes with 2 vCPUs each, every minute.
+
+[Contact sales](/contact/sales) if you need higher rate limits.
+
+### Snapshot expiration
+
+Snapshots expire after **30 days by default**. You can configure the [expiration time](/docs/vercel-sandbox/concepts/snapshots#snapshot-limits) to control how long snapshots are retained.
+
+### Regions
+
+Currently, Vercel Sandbox is only available in the `iad1` region.
+
+## Managing costs
+
+To optimize your Sandbox costs:
+
+- **Set appropriate timeouts**: Use the shortest timeout that works for your task
+- **Right-size resources**: Start with fewer vCPUs and scale up only if needed
+- **Stop sandboxes promptly**: Call `sandbox.stop()` when done rather than waiting for timeout
+- **Monitor usage**: Check the [Usage dashboard](https://vercel.com/d?to=%2Fdashboard%2F%5Bteam%5D%2Fusage\&amp;title=Show+Usage+Page) to track your sandbox consumption
+
+For more details on sandbox lifecycle management, see [Working with Sandbox](/docs/vercel-sandbox/working-with-sandbox).
+
+
+---
+
+[View full sitemap](/docs/sitemap)
+
+[result-id: r7]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-31-40-185Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-31-40-185Z" class="timestamp-link"><time datetime="2026-04-08T11:31:40.185Z" data-timestamp="2026-04-08T11:31:40.185Z">2026-04-08T11:31:40.185Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># E2B Technical Details - Content Analysis
+
+Based on the provided documentation excerpt, here&#x27;s what can be extracted:
+
+## Available Information
+
+**Core Offering:**
+- &quot;isolated sandboxes that let agents safely execute code, process data, and run tools&quot;
+- Linux-based VM environment (referenced as &quot;Linux VM created on demand&quot;)
+
+**SDK Support:**
+- JavaScript/TypeScript via npm package
+- Python via pip package
+
+**Documentation Resources:**
+- Complete documentation index available at https://e2b.mintlify.app/llms.txt
+- SDK Reference documentation referenced
+
+## Information NOT Found
+
+The provided content does **not** include specific technical specifications for:
+- VM/sandbox startup times or cold start metrics
+- Boot disk access details
+- Reboot support capabilities
+- VM forking speed
+- GPU support status
+- Specific language runtime support beyond JavaScript/Python
+- MCP server information
+- Multi-tenant git specifications
+- Serverless runs capability
+- Deployment options
+- Free tier pricing details
+
+**Note:** The page directs readers to the complete documentation index for comprehensive information. The excerpt shown appears to be an introductory overview rather than a technical specifications document.
+[result-id: r8]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-31-41-839Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-31-41-839Z" class="timestamp-link"><time datetime="2026-04-08T11:31:41.839Z" data-timestamp="2026-04-08T11:31:41.839Z">2026-04-08T11:31:41.839Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Freestyle Roadmap Items
+
+Based on the documentation, here are the upcoming features:
+
+## Currently In Development
+
+- **VM Volume Decoupling**: &quot;independent Volumes into VMs that are decoupled from the VM itself&quot;
+- **VM Docker Unpacking**: Unpacking Docker images directly into VMs for faster startup and better compatibility
+- **Dev Server Configuration V2**: Enhanced configuration system with first-class support for Python, Docker Compose, and other languages
+- **Git Repository Auto Deployments**: Configure preview deployments based on Freestyle Git Repos
+- **Usage/Metrics V2**: More granular metrics including domain, user, and deployment tracking
+- **Better DNS**: Improvements to DNS API with more record types and a dashboard UI
+- **Dev Servers Computer Use**: Beta testing of pre-built computer use tools for AI testing apps in dev
+- **Freestyle MCP**: Cloud MCP to allow AI to access debug logs and build more easily with Freestyle
+
+## Recently Completed
+
+- VM Service (low-level sandbox environment)
+- Git Triggers
+- Python SDK
+- Usage/Metrics
+- Dev Servers
+
+## Shelved/Cancelled
+
+- Hot Module Replacement (cancelled in favor of dev servers)
+
+The roadmap notably **does not mention** GPU support, reboot functionality, forking capabilities, multi-tenant git, llms.txt, or agent discoverability.
+[result-id: r9]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-31-42-534Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-31-42-534Z" class="timestamp-link"><time datetime="2026-04-08T11:31:42.534Z" data-timestamp="2026-04-08T11:31:42.534Z">2026-04-08T11:31:42.534Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Freestyle VMs - Technical Details Extract
+
+## VM Performance
+- **Startup Time**: &quot;VMs provision in under 700ms from API request to ready machine&quot;
+- **Cold Start**: Restored memory snapshot enables rapid boot (700ms total)
+- **Forking Speed**: &quot;Clone a running VM without pausing it — get full copies in milliseconds&quot;
+
+## Core Features
+- **Live Forking**: Agents can explore multiple solution paths simultaneously without spinning up new environments
+- **Pause/Resume**: &quot;Hibernate VMs and resume exactly where you left off — pay nothing while paused&quot;
+- **Full Linux VMs**: &quot;Full Linux virtual machines with real root, nested virtualization, systemd, and a complete networking stack&quot;
+
+## Linux &amp; Virtualization Support
+- Nested virtualization with full KVM support
+- Multi-user isolation with sealed Linux users and systemd services
+- Complete networking stack with real root access
+- Hardware-based isolation: &quot;Each VM gets its own isolated kernel, memory, and networking stack&quot;
+
+## Language Integrations
+First-class support for: Bun, Node.js, Python, UV, Ruby, OpenJDK (Java)
+
+## Security Model
+Full hardware virtualization (not containers/microVMs): &quot;Every Freestyle VM runs on full hardware virtualization — not containers, not microVMs sharing a kernel&quot;
+
+## Pricing
+- Free tier available (&quot;No credit card required&quot;)
+- Pay-as-you-go model
+- No charges for paused VMs (storage only)
+
+## Not Found in Documentation
+GPU support, MCP server capabilities, multi-tenant git details, and serverless runs specifications were not covered in the provided content.
+[result-id: r10]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-31-42-555Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-31-42-555Z" class="timestamp-link"><time datetime="2026-04-08T11:31:42.555Z" data-timestamp="2026-04-08T11:31:42.555Z">2026-04-08T11:31:42.555Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Daytona Technical Details Extraction
+
+Based on the documentation provided, here&#x27;s what I found:
+
+## Available Information
+
+**Language Support:** &quot;Python, TypeScript, and JavaScript programming language runtimes for direct code execution inside the sandbox.&quot;
+
+**Default Resources:** &quot;1 vCPU, 1GB RAM, and 3GiB disk by default&quot; with maximum organization limits of &quot;4 vCPUs, 8GB RAM, and 10GB disk.&quot;
+
+**Linux Support:** The platform uses OCI-compliant container images and mentions &quot;Debian&quot; as an available image option.
+
+**MCP Server:** Referenced in the Agent Tools section as an available feature.
+
+**Deployment Options:** Documentation mentions &quot;Open Source&quot; and &quot;Customer Managed Compute&quot; deployment types.
+
+**Auto-lifecycle Management:** Sandboxes support configurable auto-stop (default 15 minutes), auto-archive (default 7 days), and auto-delete intervals.
+
+## Not Documented
+
+The provided content does **not** contain specifications for:
+- Startup/cold start timing metrics
+- Boot disk access details
+- Reboot support capabilities
+- Forking functionality
+- GPU support availability
+- Specific MCP server implementation details
+- llms.txt specifications
+- Multi-tenant git configurations
+- Serverless runs capabilities
+- Free tier pricing structure
+
+These details may exist in other Daytona documentation sections not included in this excerpt.
+[result-id: r11]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-31-43-325Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-31-43-325Z" class="timestamp-link"><time datetime="2026-04-08T11:31:43.325Z" data-timestamp="2026-04-08T11:31:43.325Z">2026-04-08T11:31:43.325Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Freestyle VMs Technical Details
+
+## Startup &amp; Performance
+- **Sub-second startup**: &quot;VMs provision in under 800ms from API request to running machine&quot;
+- **Pause/resume**: VMs can pause and resume in under 100ms, maintaining exact memory state
+- **No traditional boot process**: Machines launch from memory snapshots already booted
+
+## Forking Capabilities
+- Running VMs can fork without noticeably pausing the original
+- &quot;Fork it N times with minimal performance impact&quot;
+- Enables parallel exploration workflows
+
+## Linux &amp; System Support
+- Full Linux virtual machines with low-level access
+- SSH access supported
+- Systemd available
+- Multiple users and groups configurable
+- Flexible networking options
+- No restrictions on Linux-compatible software
+
+## Language Runtime Support
+Integrations provided for:
+- Node.js
+- Python (including uv package manager)
+- Deno
+- Bun
+- Ruby
+- Java (Amazon Corretto JDK)
+
+## Storage &amp; Persistence
+- Durable storage for source-of-truth use cases
+- Cache storage with sticky persistence option
+- Automatic VM pruning when account limits reached
+- Layered git repo caching for faster first-time experiences
+
+## Developer Experience
+- **TypeScript SDK**: Described as &quot;best in class&quot;
+- **Python SDK**: Comparable to market alternatives
+- **MCP support**: Freestyle VM MCP for AI integration with file operations, command execution, search/replace
+- Strong-typed integrations with discoverable APIs
+
+## Additional Capabilities
+- Custom integrations buildable
+- Client-side sessions with granular permissions
+- Integrates with Freestyle Git repos
+- Web terminal access available
+
+**Not Mentioned**: GPU support, cold start specifications, llms.txt support, multi-tenant git details, serverless runs specifics, or free tier pricing were not covered in this documentation page.
+[result-id: r12]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-31-43-942Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-31-43-942Z" class="timestamp-link"><time datetime="2026-04-08T11:31:43.942Z" data-timestamp="2026-04-08T11:31:43.942Z">2026-04-08T11:31:43.942Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Blaxel Technical Details Extract
+
+## Sandbox Performance
+- **Resume time from standby**: &quot;under 25ms even after weeks&quot;
+- **Boot time**: &quot;~25ms (from standby)&quot;
+- **Inactivity scaling**: &quot;Automatic scale-to-zero after 5s inactivity&quot;
+
+## Sandbox Capabilities
+- **Compute type**: microVMs with &quot;full access to file system, processes and logs&quot;
+- **Data retention**: Native support for Zero Data Retention (ZDR)
+- **Preview URLs**: Available with custom domain support
+- **Persistence**: Sandboxes don&#x27;t guarantee long-term data persistence; volumes required for guaranteed persistence
+
+## Supported Technologies
+- **Linux environment**: Full microVM access implied through filesystem/process/log access
+- **GPU support**: Not mentioned in documentation
+- **Language support**: Framework-agnostic approach referenced; specific languages not listed
+
+## Platform Services
+- **MCP servers**: &quot;Deploy custom tool servers on a fast-starting infrastructure&quot; and accessible through MCP servers
+- **Documentation index**: Available at `https://docs.blaxel.ai/llms.txt`
+- **Serverless execution**: Platform implements &quot;natively serverless architecture&quot;
+- **Multi-region deployment**: Supported through Global Agentics Network
+
+## Pricing &amp; Access
+- **Free tier**: Not detailed in provided content
+- **Agent discoverability**: Not addressed in documentation excerpt
+
+## Not Covered
+Cold starts, boot disk access, reboot support, forking, and multi-tenant git functionalities are not mentioned in this documentation page.
+[result-id: r13]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-47-642Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-47-642Z" class="timestamp-link"><time datetime="2026-04-08T11:31:47.642Z" data-timestamp="2026-04-08T11:31:47.642Z">2026-04-08T11:31:47.642Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01J5SkX3SEkcDuo3npL9qkih"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://www.freestyle.sh/&#34;,
+  &#34;prompt&#34;: &#34;What are the key features advertised? Is there mention of GPU support, pricing/free tier, llms.txt, multi-tenant git, agent discoverability, serverless runs?&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-48-088Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-48-088Z" class="timestamp-link"><time datetime="2026-04-08T11:31:48.088Z" data-timestamp="2026-04-08T11:31:48.088Z">2026-04-08T11:31:48.088Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01NuF2fJaM3s7y466CCftVqY"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://freestyle.sh/llms.txt&#34;,
+  &#34;prompt&#34;: &#34;Return the full content of this llms.txt file.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-49-700Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-49-700Z" class="timestamp-link"><time datetime="2026-04-08T11:31:49.700Z" data-timestamp="2026-04-08T11:31:49.700Z">2026-04-08T11:31:49.700Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01Nv5fx5VKdq6Zbj7cM4TJvF"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://e2b.dev/docs/sandbox/overview&#34;,
+  &#34;prompt&#34;: &#34;Extract technical details: startup time, cold start, forking, GPU support, language support, MCP, llms.txt, multi-tenant git, free tier, reboot support, boot disk access.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-31-50-661Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-31-50-661Z" class="timestamp-link"><time datetime="2026-04-08T11:31:50.661Z" data-timestamp="2026-04-08T11:31:50.661Z">2026-04-08T11:31:50.661Z</time></a></div><div class="message-content"><div class="tool-result tool-error"><div class="truncatable"><div class="truncatable-content"><pre>Request failed with status code 404</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-51-050Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-51-050Z" class="timestamp-link"><time datetime="2026-04-08T11:31:51.050Z" data-timestamp="2026-04-08T11:31:51.050Z">2026-04-08T11:31:51.050Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01ENw1jkYUkbvVWQn9T5Rwu9"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://blaxel.ai/sandbox&#34;,
+  &#34;prompt&#34;: &#34;Extract all technical details: startup/resume time, cold start, forking, GPU support, language support, MCP, llms.txt, multi-tenant git, free tier, reboot support, boot disk access, agent discoverability.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-31-52-131Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-31-52-131Z" class="timestamp-link"><time datetime="2026-04-08T11:31:52.131Z" data-timestamp="2026-04-08T11:31:52.131Z">2026-04-08T11:31:52.131Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01Pg8Vd6cc4UX2mfGxaMPG3r"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://modal.com/docs/guide&#34;,
+  &#34;prompt&#34;: &#34;Extract all technical details: cold start times, boot disk/volume access, reboot support, VM forking, Linux support, GPU support, language support, MCP server, llms.txt, multi-tenant git, serverless runs, deployments, free tier, agent discoverability.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-31-54-032Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-31-54-032Z" class="timestamp-link"><time datetime="2026-04-08T11:31:54.032Z" data-timestamp="2026-04-08T11:31:54.032Z">2026-04-08T11:31:54.032Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Freestyle Key Features Analysis
+
+## Advertised Features:
+
+**Present:**
+- **Instant Startup**: &quot;VMs provision in under 700ms from API request to ready machine&quot;
+- **Live Forking**: Clone running VMs without pausing, with millisecond copies
+- **Pause &amp; Resume**: &quot;Hibernate VMs and resume exactly where you left off — pay nothing while paused&quot;
+- **Git Integration**: Bidirectional sync with GitHub, git repos for managing agent code
+- **Nested Virtualization**: Full KVM support, Docker compatibility
+- **Linux VMs**: Real root access, multi-user isolation, systemd services
+
+**Free Tier**: Mentioned as &quot;Free to start. No credit card required&quot;
+
+## Not Mentioned:
+
+- GPU support
+- Detailed pricing structure
+- llms.txt support
+- Multi-tenant git capabilities
+- Agent discoverability features
+- Serverless runs (though &quot;Freestyle Runs&quot; is listed as a product)
+
+The platform positions itself as infrastructure for &quot;coding agents&quot; and &quot;AI app builders&quot; with code generation capabilities, but these specific technical features aren&#x27;t explicitly detailed in the provided content.
+[result-id: r14]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-31-56-837Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-31-56-837Z" class="timestamp-link"><time datetime="2026-04-08T11:31:56.837Z" data-timestamp="2026-04-08T11:31:56.837Z">2026-04-08T11:31:56.837Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Freestyle - llms.txt Content
+
+Based on the webpage provided, here&#x27;s the essential information about Freestyle:
+
+## Overview
+Freestyle is a platform offering &quot;Git, VMs, deployments, and execution — unified infrastructure for code you didn&#x27;t write.&quot; It&#x27;s designed as sandbox infrastructure specifically for AI coding agents.
+
+## Core Products
+- **Freestyle Git**: Repository management for agents
+- **Freestyle VMs**: Full Linux virtual machines with instant startup (~700ms)
+- **Freestyle Deployments**: Deploy from git repositories
+- **Freestyle Runs**: Code execution environment
+
+## Key Features
+- VMs provision in under 700ms
+- Live forking capability (cloning running VMs in milliseconds)
+- Pause/resume functionality (no cost while paused)
+- Nested virtualization support
+- Full Linux networking stack with root access
+- Multi-user isolation via sealed Linux users and systemd services
+
+## Use Cases Demonstrated
+The platform supports various AI agent patterns:
+- App builders (similar to Lovable, Bolt, V0)
+- Coding agents (like Devin, Cursor Agent)
+- Code review bots (like Code Rabbit, Greptile)
+- AI assistants with persistent state
+
+## Company Details
+- Based in San Francisco, CA
+- Backed by notable investors including Y Combinator and Floodgate
+- Active community on Discord
+- Open source projects: Adorable, Freestyle CLI, and Cloudstate
+[result-id: r15]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-31-58-777Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-31-58-777Z" class="timestamp-link"><time datetime="2026-04-08T11:31:58.777Z" data-timestamp="2026-04-08T11:31:58.777Z">2026-04-08T11:31:58.777Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Modal Technical Details Extract
+
+Based on the documentation page provided, here are the technical details found:
+
+**Cold Start Performance:**
+&quot;sub-second cold starts&quot; are mentioned as a capability for low-latency inference operations.
+
+**GPU Support:**
+The platform supports GPU acceleration, including CUDA configuration and GPU health monitoring.
+
+**Language Support:**
+&quot;Python is the primary language for building Modal applications,&quot; though the platform also supports JavaScript/TypeScript and Go for calling functions and managing resources.
+
+**Serverless Architecture:**
+The documentation states you get &quot;full serverless execution and pricing&quot; with per-second usage billing and automatic scaling.
+
+**Deployment &amp; Scaling:**
+The platform handles automatic container scaling, job queues, batch processing, and dynamic batching capabilities.
+
+**Free Tier:**
+Not explicitly detailed in this introduction page.
+
+**Other Features Not Explicitly Mentioned:**
+The following were not addressed in the provided content:
+- Specific boot disk/volume access details
+- Reboot support specifications
+- VM forking capabilities
+- MCP server information
+- llms.txt support
+- Multi-tenant git details
+- Agent discoverability features
+
+The page emphasizes that &quot;everything, including container environments and GPU specification, is code&quot; with &quot;zero configuration&quot; and &quot;no YAML.&quot;
+[result-id: r16]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-32-04-888Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-32-04-888Z" class="timestamp-link"><time datetime="2026-04-08T11:32:04.888Z" data-timestamp="2026-04-08T11:32:04.888Z">2026-04-08T11:32:04.888Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Blaxel Technical Details
+
+**Startup/Resume Time:**
+&quot;Blaxel gives agents persistent computers that wait on standby when idle, resume in ~25ms to run AI code or share context.&quot; Industry-leading cold-start performance from standby state.
+
+**Cold Start:**
+The platform achieves &quot;World-class 25ms resume times&quot; and eliminates cold-starts through persistent standby sandboxes that maintain full filesystem and memory snapshots between sessions.
+
+**Forking:**
+Supports creating &quot;new volumes from volume templates to prepopulate them with data that you&#x27;ll use every time,&quot; enabling snapshot-based volume creation.
+
+**GPU Support:**
+Not mentioned in the provided content.
+
+**Language Support:**
+Supports multiple programming environments (Python, Node.js, Rust, and shell access via &quot;full Linux access — filesystem, libraries, shell and logs&quot;).
+
+**MCP:**
+&quot;A built-in MCP server is included in every sandbox for instant integration via remote tool calls&quot; and &quot;Tool-call native&quot; architecture for agentic automation.
+
+**llms.txt:**
+Not mentioned in the provided content.
+
+**Multi-tenant Git:**
+Not explicitly detailed; code review agents can &quot;analyze repositories to detect the effects of changes&quot; in isolated environments.
+
+**Free Tier:**
+Available with &quot;up to $200 in credits&quot; on a free tier before pay-as-you-go pricing applies.
+
+**Reboot Support:**
+Implicit through persistent snapshots; sandboxes &quot;resume exactly how you left them off&quot; after suspension.
+
+**Boot Disk Access:**
+&quot;Root filesystem runs in the memory&quot; for performance; full filesystem access provided.
+
+**Agent Discoverability:**
+Not mentioned in the provided content.
+[result-id: r17]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-32-09-706Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-32-09-706Z" class="timestamp-link"><time datetime="2026-04-08T11:32:09.706Z" data-timestamp="2026-04-08T11:32:09.706Z">2026-04-08T11:32:09.706Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01AxCKdLLG5wx5F8NupBbGq1"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://modal.com/pricing&#34;,
+  &#34;prompt&#34;: &#34;Extract free tier details, GPU pricing, and any specific cold start or performance metrics.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-32-10-496Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-32-10-496Z" class="timestamp-link"><time datetime="2026-04-08T11:32:10.496Z" data-timestamp="2026-04-08T11:32:10.496Z">2026-04-08T11:32:10.496Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01B2ZE2gunWCmgU3Rsc6xcJN"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://e2b.dev/pricing&#34;,
+  &#34;prompt&#34;: &#34;Extract free tier, pricing, and any technical specs like cold start time, session duration, GPU support.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-32-10-904Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-32-10-904Z" class="timestamp-link"><time datetime="2026-04-08T11:32:10.904Z" data-timestamp="2026-04-08T11:32:10.904Z">2026-04-08T11:32:10.904Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01XM3myLbfnEzxRgkjXgyFC5"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://www.daytona.io/pricing&#34;,
+  &#34;prompt&#34;: &#34;Extract free tier details, pricing, GPU support, and any technical specs.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-32-12-592Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-32-12-592Z" class="timestamp-link"><time datetime="2026-04-08T11:32:12.592Z" data-timestamp="2026-04-08T11:32:12.592Z">2026-04-08T11:32:12.592Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01HCy97MoZAYypMy6npTmPaq"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://news.ycombinator.com/item?id=47663147&#34;,
+  &#34;prompt&#34;: &#34;Summarize the key technical claims about Freestyle from the founders/team, especially cold start times, forking speed, GPU plans, multi-tenant git, llms.txt, and any comparisons to E2B or other competitors.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-32-13-419Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-32-13-419Z" class="timestamp-link"><time datetime="2026-04-08T11:32:13.419Z" data-timestamp="2026-04-08T11:32:13.419Z">2026-04-08T11:32:13.419Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01VWwLJn6wATqREABPjMHpWX"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;freestyle.sh pricing free tier GPU support llms.txt 2025&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-32-13-533Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-32-13-533Z" class="timestamp-link"><time datetime="2026-04-08T11:32:13.533Z" data-timestamp="2026-04-08T11:32:13.533Z">2026-04-08T11:32:13.533Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01GF3bS5Vscms8dgAMZ18cvX"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Daytona sandbox MCP server llms.txt multi-tenant git 2025 2026&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-32-15-381Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-32-15-381Z" class="timestamp-link"><time datetime="2026-04-08T11:32:15.381Z" data-timestamp="2026-04-08T11:32:15.381Z">2026-04-08T11:32:15.381Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Daytona Pricing &amp; Infrastructure Summary
+
+## Free Tier
+- **No credit card required** for signup
+- **$200 in free compute credits** included
+- **First 5 GiB of storage** provided at no cost
+- Startup program offers **up to $50k in additional credits**
+
+## Pay-as-You-Go Pricing
+The platform charges per resource:
+- **Compute/vCPU:** $0.0504/hour
+- **Memory (GiB):** $0.0162/hour
+- **Storage (GiB):** $0.000108/hour (after free tier)
+
+## GPU Support
+Daytona offers multiple GPU configurations:
+- 12GB GDDR6 GPUs
+- 8-core, 16-core, and 32-core GPU variants
+
+## Technical Specifications
+The service emphasizes rapid deployment: &quot;Sub 90ms sandbox creation from code to execution.&quot; Sandboxes can be spun up and shut down in milliseconds, making it suitable for dynamic AI workloads.
+
+## Additional Offerings
+- **Enterprise plans** available for on-premise deployment
+- **Startup program** with dedicated support
+- Volume discounts scale with usage growth
+[result-id: r18]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-32-15-472Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-32-15-472Z" class="timestamp-link"><time datetime="2026-04-08T11:32:15.472Z" data-timestamp="2026-04-08T11:32:15.472Z">2026-04-08T11:32:15.472Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># E2B Pricing Summary
+
+## Free Tier (Hobby)
+- **Cost:** Free + usage costs
+- **Includes:** $100 one-time usage credits, community support
+- **Session Length:** Up to 1 hour
+- **Concurrency:** Up to 20 sandboxes
+- **Storage:** 10 GiB free
+
+## Paid Tiers
+
+**Pro:** $150/month + usage costs
+- Everything in Hobby tier
+- Customizable CPU/RAM configuration
+- Up to 24-hour session length
+- Up to 100 concurrent sandboxes (expandable to 1,100)
+- 20 GiB free storage
+
+**Ultimate/Enterprise:** Custom pricing
+- Contact for custom solutions
+
+## Technical Specifications
+
+**Usage Costs (per second of running sandbox):**
+- CPU: $0.000014/s per vCPU (1-8 vCPU options available)
+- RAM: $0.0000045/GiB/s (512 MiB–8 GiB range)
+- Storage: Included (no per-second charge)
+
+**Key Limits:**
+- No GPU support mentioned
+- No cold start time specifications provided
+- Maximum customizable RAM: 8 GiB
+
+No specific cold start time data appears in the provided content.
+[result-id: r19]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-32-16-003Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-32-16-003Z" class="timestamp-link"><time datetime="2026-04-08T11:32:16.003Z" data-timestamp="2026-04-08T11:32:16.003Z">2026-04-08T11:32:16.003Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Modal Pricing Summary
+
+## Free Tier Details
+
+**Starter Plan ($0 base)**
+- &quot;$30 / month free credits&quot;
+- &quot;3 workspace seats included&quot;
+- &quot;100 containers + 10 GPU concurrency&quot;
+- Limited crons and web endpoints
+- &quot;1 day&quot; log retention
+
+## GPU Pricing
+
+Modal offers per-second billing for various GPUs:
+
+| GPU Model | Cost/Second |
+|-----------|------------|
+| Nvidia B200 | $0.001736 |
+| Nvidia H200 | $0.001261 |
+| Nvidia H100 | $0.001097 |
+| Nvidia A100 (80GB) | $0.000694 |
+| Nvidia L4 | $0.000222 |
+| Nvidia T4 | $0.000164 |
+
+## Additional Compute Costs
+
+- **CPU:** &quot;$0.0000131 / core / sec&quot; (minimum 0.125 cores per container)
+- **Memory:** &quot;$0.00000222 / GiB / sec&quot;
+
+## Performance Metrics Note
+
+The page does not specify cold start times or other performance metrics. It emphasizes that you &quot;always pay for what you use and nothing more. You never pay for idle resources — just actual compute time, by the CPU cycle.&quot;
+
+Modal also offers startup and academic credit grants (up to $25k and $10k respectively).
+[result-id: r20]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-32-18-599Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-32-18-599Z" class="timestamp-link"><time datetime="2026-04-08T11:32:18.599Z" data-timestamp="2026-04-08T11:32:18.599Z">2026-04-08T11:32:18.599Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;freestyle.sh pricing free tier GPU support llms.txt 2025&quot;
+
+Links: [{&quot;title&quot;:&quot;Pricing - Freestyle&quot;,&quot;url&quot;:&quot;https://www.freestyle.sh/pricing&quot;},{&quot;title&quot;:&quot;Which GPU Cloud Providers Offer Free or Low-Cost Access for Open Source AI Projects in 2025? - GMI Cloud Blog&quot;,&quot;url&quot;:&quot;https://www.gmicloud.ai/blog/which-gpu-cloud-providers-offer-free-or-low-cost-access-for-open-source-ai-projects-in-2025&quot;},{&quot;title&quot;:&quot;Free Tiers and Open Source LLMs - Mana for Developers, Platform Engineers and QA - DevOps.com&quot;,&quot;url&quot;:&quot;https://devops.com/free-tiers-and-open-source-llms-mana-for-developers-platform-engineers-and-qa/&quot;},{&quot;title&quot;:&quot;Run LLMs Free on Oracle Cloud - Always Free Tier GPU Guide (2026)&quot;,&quot;url&quot;:&quot;https://blog.easecloud.io/ai-cloud/launch-oracle-cloud-llms-in/&quot;},{&quot;title&quot;:&quot;Local LLM Hardware Guide 2025: GPU Specs &amp; Pricing | Introl Blog&quot;,&quot;url&quot;:&quot;https://introl.com/blog/local-llm-hardware-pricing-guide-2025&quot;},{&quot;title&quot;:&quot;7 Best Free Open Source LLMs You Can Use in 2025 - ToolJunction&quot;,&quot;url&quot;:&quot;https://www.tooljunction.io/blog/best-free-open-source-llms-2025&quot;},{&quot;title&quot;:&quot;The Best Open-Source LLMs in 2026&quot;,&quot;url&quot;:&quot;https://www.bentoml.com/blog/navigating-the-world-of-open-source-large-language-models&quot;},{&quot;title&quot;:&quot;Best Free AI APIs for 2025: Build with LLMs Without ...&quot;,&quot;url&quot;:&quot;https://madappgang.com/blog/best-free-ai-apis-for-2025-build-with-llms-without/&quot;},{&quot;title&quot;:&quot;LLM API Pricing Comparison (2025): OpenAI, Gemini, Claude | IntuitionLabs&quot;,&quot;url&quot;:&quot;https://intuitionlabs.ai/articles/llm-api-pricing-comparison-2025&quot;},{&quot;title&quot;:&quot;Top 9 Open-Source LLM Hosting Providers (2025)&quot;,&quot;url&quot;:&quot;https://www.databasemart.com/blog/top-open-source-llm-hosting-providers-2025&quot;}]
+
+Based on the search results, I found information about Freestyle&#x27;s pricing offering simple, transparent pricing with a free tier to start and scale as you grow. However, the search results don&#x27;t contain detailed specifics about:
+
+- The specific features and limits of Freestyle&#x27;s free tier
+- GPU support details for Freestyle
+- Information about &quot;llms.txt&quot; in relation to Freestyle
+- Detailed 2025 pricing structure
+
+The search returned the Freestyle pricing page but with limited content. To get more detailed information about Freestyle&#x27;s free tier GPU support, specific pricing tiers, and any connection to &quot;llms.txt,&quot; you may want to:
+
+1. Visit the official Freestyle pricing page directly at https://www.freestyle.sh/pricing
+2. Check their documentation for the llms.txt file specifications
+3. Contact their support team for current GPU availability in the free tier
+
+If you have more specific questions about Freestyle&#x27;s features or need information about alternative GPU providers with free tiers for LLMs, I can search for that instead.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.
+[result-id: r21]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-32-21-721Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-32-21-721Z" class="timestamp-link"><time datetime="2026-04-08T11:32:21.721Z" data-timestamp="2026-04-08T11:32:21.721Z">2026-04-08T11:32:21.721Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Daytona sandbox MCP server llms.txt multi-tenant git 2025 2026&quot;
+
+Links: [{&quot;title&quot;:&quot;https://www.daytona.io/docs/llms-full.txt&quot;,&quot;url&quot;:&quot;https://www.daytona.io/docs/llms-full.txt&quot;},{&quot;title&quot;:&quot;GitHub - modelcontextprotocol/servers: Model Context Protocol Servers · GitHub&quot;,&quot;url&quot;:&quot;https://github.com/modelcontextprotocol/servers&quot;},{&quot;title&quot;:&quot;Secure AI Code Execution with Daytona and Encore.ts – Encore Blog&quot;,&quot;url&quot;:&quot;https://encore.dev/blog/daytona-tutorial&quot;},{&quot;title&quot;:&quot;Daytona - Secure Infrastructure for Running AI-Generated Code&quot;,&quot;url&quot;:&quot;https://www.daytona.io/&quot;},{&quot;title&quot;:&quot;List of MCP Servers&quot;,&quot;url&quot;:&quot;https://github.com/modelcontextprotocol/servers?tab=readme-ov-file&quot;},{&quot;title&quot;:&quot;Daytona MCP Server | Daytona&quot;,&quot;url&quot;:&quot;https://www.daytona.io/docs/en/mcp/&quot;},{&quot;title&quot;:&quot;Documentation · Daytona&quot;,&quot;url&quot;:&quot;https://www.daytona.io/docs/en/&quot;},{&quot;title&quot;:&quot;Daytona - AI Code Sandbox Infrastructure | EveryDev.ai&quot;,&quot;url&quot;:&quot;https://www.everydev.ai/tools/daytona&quot;},{&quot;title&quot;:&quot;https://www.daytona.io/docs/llms.txt&quot;,&quot;url&quot;:&quot;https://www.daytona.io/docs/llms.txt&quot;},{&quot;title&quot;:&quot;llms.txt&quot;,&quot;url&quot;:&quot;https://mastra.ai/reference/workspace/daytona-sandbox/llms.txt&quot;}]
+
+Based on the search results, here&#x27;s what I found about Daytona sandbox, MCP server, and llms.txt:
+
+## Daytona Overview
+
+Daytona is an open-source, secure and elastic infrastructure for running AI-generated code that provides full composable computers — sandboxes — that you can manage programmatically using the Daytona SDKs, CLI, and API to run and control code execution.
+
+## MCP Server Integration
+
+Daytona Model Context Protocol (MCP) server enables AI agents to interact with Daytona Sandboxes programmatically, and this guide covers how to set up and use the MCP server with various AI agents. Supported agents include Claude, Cursor, and Windsurf.
+
+## Multi-Tenant Architecture
+
+Sandboxes run on isolated, customer-managed compute, in your cloud or on-prem, with Daytona providing the control plane, with no shared compute and no cross-tenant risk. Enterprise Compliance meets HIPAA, SOC 2, and GDPR standards with single-tenant deployment options and open-source transparency.
+
+## Git Integration
+
+Daytona supports native Git operations and secure credential handling. One powerful feature of Daytona sandboxes is Git integration where you can clone repositories directly into the sandbox and execute scripts from them.
+
+## llms.txt Documentation Files
+
+For faster development with AI agents and assistants, Daytona provides LLMs context files, with llms-full.txt and llms.txt files that can be copied and included in projects or chat contexts.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.
+[result-id: r22]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-32-22-494Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-32-22-494Z" class="timestamp-link"><time datetime="2026-04-08T11:32:22.494Z" data-timestamp="2026-04-08T11:32:22.494Z">2026-04-08T11:32:22.494Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Freestyle Technical Claims Summary
+
+## Cold Start &amp; Performance
+The founders claim **~500ms VM provisioning** (&quot;Our sandboxes start in ~500ms&quot;), with a median of **320ms**. They aim to reduce this to 200ms within three months.
+
+## Memory Forking
+The most distinctive claim: forking entire VM memory in **~400ms pause** (&quot;We&#x27;ve figured out how to fork a sandbox horizontally without more than a 400ms pause&quot;). This uses copy-on-write technology and is claimed to be **O(1) regardless of VM size or fork count** (&quot;Fork time is completely decoupled from the size of the machine&quot;).
+
+## Infrastructure
+They moved to **bare metal servers** after determining cloud bare-metal costs exceeded hardware purchase costs: &quot;the monthly cost was equivalent to the total cost of the hardware so we did that.&quot;
+
+## Multi-tenant Git
+Freestyle includes **built-in git hosting** (&quot;Freestyle is the only sandbox provider with built-in multi-tenant git hosting&quot;), though one founder clarified it&#x27;s &quot;designed for platforms building coding agents that want to take the place of Github.&quot;
+
+## GPU Support
+**No GPU support mentioned**. Modal was noted as &quot;the only provider with GPU support.&quot;
+
+## Competitor Comparisons
+- **vs E2B/Daytona**: &quot;full Linux + hardware-virtualization&quot; with support for eBPF, nested virtualization, and systemd—capabilities competitors lack
+- **vs Fly.io Sprites**: Similar hardware virtualization, but Freestyle emphasizes superior forking and templating
+[result-id: r23]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-32-25-141Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-32-25-141Z" class="timestamp-link"><time datetime="2026-04-08T11:32:25.141Z" data-timestamp="2026-04-08T11:32:25.141Z">2026-04-08T11:32:25.141Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01AfWSEqHVj23BgXQdcWNXS9"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://www.freestyle.sh/pricing&#34;,
+  &#34;prompt&#34;: &#34;Extract all pricing tiers, free tier details, and any resource limits mentioned.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-32-26-011Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-32-26-011Z" class="timestamp-link"><time datetime="2026-04-08T11:32:26.011Z" data-timestamp="2026-04-08T11:32:26.011Z">2026-04-08T11:32:26.011Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01MwJhm6Uq6TN8YUS6QSDhcn"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://blaxel.ai/pricing&#34;,
+  &#34;prompt&#34;: &#34;Extract all pricing tiers, free tier details, GPU support, resource limits.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-32-26-368Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-32-26-368Z" class="timestamp-link"><time datetime="2026-04-08T11:32:26.368Z" data-timestamp="2026-04-08T11:32:26.368Z">2026-04-08T11:32:26.368Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01EcZyZse1qYoEqF2MLJysBp"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;E2B sandbox llms.txt multi-tenant git boot disk reboot forking 2025&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-32-27-340Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-32-27-340Z" class="timestamp-link"><time datetime="2026-04-08T11:32:27.340Z" data-timestamp="2026-04-08T11:32:27.340Z">2026-04-08T11:32:27.340Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_014QQF6MdoKa1Xt2Y6L88iea"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Modal llms.txt multi-tenant git reboot VM forking agent discoverability 2025&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-32-27-890Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-32-27-890Z" class="timestamp-link"><time datetime="2026-04-08T11:32:27.890Z" data-timestamp="2026-04-08T11:32:27.890Z">2026-04-08T11:32:27.890Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_012jtXZxYU3eq9k3fbCYiowU"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Vercel sandbox boot disk reboot forking multi-tenant git full Linux 2025 2026&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-32-31-041Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-32-31-041Z" class="timestamp-link"><time datetime="2026-04-08T11:32:31.041Z" data-timestamp="2026-04-08T11:32:31.041Z">2026-04-08T11:32:31.041Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Blaxel Pricing Analysis
+
+## Pricing Tiers
+
+**Pay-as-you-go (Primary Offering)**
+- Starting at $0+ with &quot;Up to $200 free credits&quot;
+- Usage-based model with no base subscription
+- Automatic tier progression as users add credits
+
+**Tier Structure** (10 total tiers, 0-9):
+- Tier 0 (Free): 10 concurrent sandboxes
+- Tier 1 (Add card): 50 sandboxes
+- Tier 2 ($50/90 days): 200 sandboxes
+- Tier 9 (highest): 100,000+ sandboxes
+
+**Custom Deployment Plan**
+- Enterprise option with custom pricing
+- Includes dedicated locations and private connectivity
+
+## Free Tier Details
+
+- &quot;$200 free credits to get started. No credit card required&quot;
+- &quot;Access to all Blaxel products&quot;
+- Community Discord support included
+- Full observability suite (traces, logs, metrics)
+
+## Resource Pricing (No GPU Listed)
+
+The platform charges per GB-second for various runtimes:
+- Sandboxes: $0.000023-$0.000368/second (2-32 GB tiers)
+- Agents runtime: $0.0000095/GB-second
+- Batch jobs: $0.000006/GB-second
+- MCP Servers: $0.000007/GB-second
+
+**Notable:** No GPU pricing or GPU support mentioned in the documentation.
+
+## Resource Limits
+
+Maximum scalability noted: &quot;Scale up to 50,000+ concurrent sandboxes&quot; with tier progression based on credit top-ups.
+[result-id: r24]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-32-31-277Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-32-31-277Z" class="timestamp-link"><time datetime="2026-04-08T11:32:31.277Z" data-timestamp="2026-04-08T11:32:31.277Z">2026-04-08T11:32:31.277Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Freestyle Pricing Tiers &amp; Details
+
+## Pricing Tiers
+
+**Free** - $0/month
+- &quot;Perfect for hobby projects and getting started&quot;
+- Concurrent VMs: 10
+- Saved VMs: 50
+- Snapshots: 50
+- Repositories: 500
+- Runs/Month: 500
+- Managed Domains: 5
+
+**Hobby** - $50/month (+ usage overage)
+- &quot;For growing projects that need more power&quot;
+- Concurrent VMs: 40
+- Saved VMs: 200
+- Snapshots: 1,000
+- Repositories: 5,000
+- Runs/Month: 5,000
+- Managed Domains: 20
+
+**Pro** - $500/month (+ usage overage)
+- &quot;For teams and production applications&quot;
+- Concurrent VMs: 400
+- Saved VMs: 4,000
+- Snapshots: 12,000
+- Repositories: 50,000
+- Runs/Month: 500,000
+- Managed Domains: 2,000
+
+**Enterprise** - Custom pricing
+- &quot;Custom pricing with dedicated support, SLAs, and advanced security&quot;
+- Includes SAML SSO, audit logs, 99.99% SLA, dedicated support
+
+## Resource Pricing (Usage-Based)
+
+- vCPU Hour: $0.04032
+- GiB Memory Hour: $0.0129
+- GiB Storage Hour: $0.000086
+
+## Free Tier Daily Allowances
+
+- 20 vCPU hours/day
+- 40 GiB memory hours/day
+- 16,800 GiB storage hours/day
+[result-id: r25]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-32-34-712Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-32-34-712Z" class="timestamp-link"><time datetime="2026-04-08T11:32:34.712Z" data-timestamp="2026-04-08T11:32:34.712Z">2026-04-08T11:32:34.712Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;E2B sandbox llms.txt multi-tenant git boot disk reboot forking 2025&quot;
+
+Links: [{&quot;title&quot;:&quot;E2B | The Enterprise AI Agent Cloud&quot;,&quot;url&quot;:&quot;https://e2b.dev/&quot;},{&quot;title&quot;:&quot;Why Every Agent needs Open Source Cloud Sandboxes&quot;,&quot;url&quot;:&quot;https://www.latent.space/p/e2b&quot;},{&quot;title&quot;:&quot;GitHub - e2b-dev/E2B: Open-source, secure environment with real-world tools for enterprise-grade agents. · GitHub&quot;,&quot;url&quot;:&quot;https://github.com/e2b-dev/E2B&quot;},{&quot;title&quot;:&quot;The best alternatives to E2B.dev for running untrusted code in secure sandboxes | Blog — Northflank&quot;,&quot;url&quot;:&quot;https://northflank.com/blog/best-alternatives-to-e2b-dev-for-running-untrusted-code-in-secure-sandboxes&quot;},{&quot;title&quot;:&quot;GitHub - restyler/awesome-sandbox: Awesome Code Sandboxing for AI · GitHub&quot;,&quot;url&quot;:&quot;https://github.com/restyler/awesome-sandbox&quot;},{&quot;title&quot;:&quot;GitHub - agent-sandbox/agent-sandbox: Agent Sandbox is an E2B compatible, enterprise-grade ai-first, cloud-native runtime environment for AI Agents. Allows Agents to securely run untrusted LLM-generated Code, Browser use, Computer use, and Shell commands etc. with stateful, long-running, multi-session and multi-tenant. · GitHub&quot;,&quot;url&quot;:&quot;https://github.com/agent-sandbox/agent-sandbox&quot;},{&quot;title&quot;:&quot;E2B | Cloud for AI Agents · GitHub&quot;,&quot;url&quot;:&quot;https://github.com/e2b-dev&quot;},{&quot;title&quot;:&quot;Documentation - E2B&quot;,&quot;url&quot;:&quot;https://e2b.dev/docs&quot;},{&quot;title&quot;:&quot;Paused sandbox is not persisting the file changes / addition after second time resumed and onward · Issue #884 · e2b-dev/E2B&quot;,&quot;url&quot;:&quot;https://github.com/e2b-dev/E2B/issues/884&quot;},{&quot;title&quot;:&quot;e2b · PyPI&quot;,&quot;url&quot;:&quot;https://pypi.org/project/e2b/&quot;}]
+
+Based on the web search results, here&#x27;s what I found about E2B and the topics in your query:
+
+## E2B Overview
+
+E2B is an open-source, secure cloud runtime engineered for AI applications and autonomous agents that provides sandboxed cloud environments powered by Firecracker microVMs, enabling safe execution of AI-generated code.
+
+## Key Features Relevant to Your Query
+
+**Multi-tenant Support:** Each sandbox is isolated on a per-agent or per-user basis, ensuring security and preventing interference between different conversations or tasks.
+
+**Forking and State Management:** The E2B team is developing toolkit features to help with forking and then re-merging, making it easier for LLMs to merge states or navigate trees.
+
+**Git Integration:** The search results mention platforms offering integration with Git and custom toolchains as part of sandbox management.
+
+**Boot and Reboot Capabilities:** E2B has fast startup time (~150-200ms) ideal for ephemeral tasks, and the Pro plan supports sessions up to 24 hours long for complex, stateful agentic tasks with persistent state.
+
+**Recent Development:** The project has notable partnerships like one with Groq announced in April 2025, indicating its adoption in production systems.
+
+The search results do not contain specific information about &quot;llms.txt&quot; or &quot;boot disk reboot forking&quot; as specific E2B features from 2025. For more detailed technical documentation on these specific features, I recommend visiting E2B&#x27;s official documentation at e2b.dev/docs.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.
+[result-id: r26]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-32-35-441Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-32-35-441Z" class="timestamp-link"><time datetime="2026-04-08T11:32:35.441Z" data-timestamp="2026-04-08T11:32:35.441Z">2026-04-08T11:32:35.441Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Vercel sandbox boot disk reboot forking multi-tenant git full Linux 2025 2026&quot;
+
+Links: [{&quot;title&quot;:&quot;Vercel Sandbox&quot;,&quot;url&quot;:&quot;https://vercel.com/docs/vercel-sandbox&quot;},{&quot;title&quot;:&quot;GitHub - vercel/sandbox: Vercel Sandbox is an ephemeral compute primitive designed to safely run untrusted or user-generated code. · GitHub&quot;,&quot;url&quot;:&quot;https://github.com/vercel/sandbox&quot;},{&quot;title&quot;:&quot;Working with Sandbox&quot;,&quot;url&quot;:&quot;https://vercel.com/docs/vercel-sandbox/working-with-sandbox&quot;},{&quot;title&quot;:&quot;Multi-tenant Limits&quot;,&quot;url&quot;:&quot;https://vercel.com/docs/multi-tenant/limits&quot;},{&quot;title&quot;:&quot;Sandbox SDK Reference&quot;,&quot;url&quot;:&quot;https://vercel.com/docs/vercel-sandbox/sdk-reference&quot;},{&quot;title&quot;:&quot;Sandbox – Vercel&quot;,&quot;url&quot;:&quot;https://vercel.com/sandbox&quot;},{&quot;title&quot;:&quot;Vercel Sandbox vs CodeSandbox | Vercel Knowledge Base&quot;,&quot;url&quot;:&quot;https://vercel.com/kb/guide/vercel-sandbox-vs-codesandbox&quot;},{&quot;title&quot;:&quot;Using private GitHub repositories with Vercel Sandbox | Vercel Knowledge Base&quot;,&quot;url&quot;:&quot;https://vercel.com/kb/guide/sandbox-private-github-repositories&quot;},{&quot;title&quot;:&quot;Sandbox CLI Reference&quot;,&quot;url&quot;:&quot;https://vercel.com/docs/vercel-sandbox/cli-reference&quot;},{&quot;title&quot;:&quot;Vercel Sandbox examples&quot;,&quot;url&quot;:&quot;https://vercel.com/docs/vercel-sandbox/examples&quot;}]
+
+Based on the search results, here&#x27;s what I found about Vercel Sandbox:
+
+Vercel Sandbox allows you to run arbitrary code in isolated, ephemeral Linux VMs. Internally, it is a Firecracker MicroVM that is powered by the same infrastructure that powers 2M+ builds a day at Vercel.
+
+Regarding some of the specific features you mentioned:
+
+**Forking and Process State:** CodeSandbox clones a VM preserving full process state, so running dev servers and databases continue in the forked sandbox without restart, while Vercel Sandbox uses snapshots that do not preserve running process memory, so processes start fresh in the restored environment.
+
+**Multi-tenant Git:** For multi-tenant platforms, the recommended approach is to use GitHub App installation access tokens.
+
+**Runtime Limits:** Sandboxes have a maximum runtime duration of 5 hours for Pro/Enterprise and 45 minutes for Hobby, with a default of 5 minutes.
+
+The search results don&#x27;t provide specific information about boot disk reboot functionality or other advanced features you may have been looking for. You might want to check the official Vercel Sandbox documentation or SDK reference for more detailed technical specifications.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.
+[result-id: r27]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-04-08T11-32-35-700Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-04-08T11-32-35-700Z" class="timestamp-link"><time datetime="2026-04-08T11:32:35.700Z" data-timestamp="2026-04-08T11:32:35.700Z">2026-04-08T11:32:35.700Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Modal llms.txt multi-tenant git reboot VM forking agent discoverability 2025&quot;
+
+Links: [{&quot;title&quot;:&quot;From Code to API: A 2025 Guide to Deploying Secure, High-Performance LLMs on Modal | by Satyam Mishra | Techsutra | Medium&quot;,&quot;url&quot;:&quot;https://medium.com/techsutra/from-code-to-api-a-2025-guide-to-deploying-secure-high-performance-llms-on-modal-0350a06b7245&quot;},{&quot;title&quot;:&quot;Multi-tenant generative AI platform scenario - Generative AI Lens&quot;,&quot;url&quot;:&quot;https://docs.aws.amazon.com/wellarchitected/latest/generative-ai-lens/multi-tenant-generative-ai-platform-scenario.html&quot;},{&quot;title&quot;:&quot;Improved agent experience with llms.txt and content negotiation&quot;,&quot;url&quot;:&quot;https://www.mintlify.com/blog/context-for-agents&quot;},{&quot;title&quot;:&quot;GitHub - tmgthb/Autonomous-Agents: Autonomous Agents (LLMs) research papers. Updated Daily. · GitHub&quot;,&quot;url&quot;:&quot;https://github.com/tmgthb/Autonomous-Agents&quot;},{&quot;title&quot;:&quot;Modal llms-full.txt&quot;,&quot;url&quot;:&quot;https://modal.com/llms-full.txt&quot;},{&quot;title&quot;:&quot;Autonomous-Agents/README.md at main · tmgthb/Autonomous-Agents&quot;,&quot;url&quot;:&quot;https://github.com/tmgthb/Autonomous-Agents/blob/main/README.md&quot;},{&quot;title&quot;:&quot;multi-agent · GitHub Topics · GitHub&quot;,&quot;url&quot;:&quot;https://github.com/topics/multi-agent&quot;},{&quot;title&quot;:&quot;GitHub - NousResearch/hermes-agent: The agent that grows with you · GitHub&quot;,&quot;url&quot;:&quot;https://github.com/nousresearch/hermes-agent&quot;},{&quot;title&quot;:&quot;agent-orchestration · GitHub Topics · GitHub&quot;,&quot;url&quot;:&quot;https://github.com/topics/agent-orchestration?o=asc&amp;s=forks&quot;},{&quot;title&quot;:&quot;GitHub - AGI-Edgerunners/LLM-Agents-Papers: A repo lists papers related to LLM based agent · GitHub&quot;,&quot;url&quot;:&quot;https://github.com/AGI-Edgerunners/LLM-Agents-Papers&quot;}]
+
+Based on the search results, here&#x27;s what I found related to your query:
+
+## Modal Platform Features (2025)
+
+Modal in 2025 offers secure multi-tenant isolation through gVisor sandboxes, TLS 1.3, and zero inbound by default. Modal is a platform for running Python code in the cloud with minimal configuration, especially for serving AI models and high-performance batch processing.
+
+Modal is one of six terminal backends available for agents, along with local, Docker, SSH, Daytona, and Singularity, with Daytona and Modal offering serverless persistence where the agent&#x27;s environment hibernates when idle and wakes on demand.
+
+## Agent Discoverability with llms.txt
+
+The Link header uses standard rel semantics to advertise both the llms.txt index and the full llms-full.txt file, allowing agents to discover the documentation index directly from headers without needing to know about it in advance. Mintlify uses content negotiation to improve the agent experience by serving clean Markdown to agents, improving llms.txt placement and formatting, and advertising documentation indexes through HTTP headers.
+
+## Multi-tenant and Agent Concepts
+
+For building agentic applications, a multi-tenant service includes a runtime to deploy agents, a gateway for agents, and tool discoverability and connectivity.
+
+The search results also show research on agent forking and agent architecture frameworks for multi-agent systems, though the specific combinations of all the terms in your query don&#x27;t appear to be directly related in the results.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.
+[result-id: r28]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-04-08T11-33-31-203Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-04-08T11-33-31-203Z" class="timestamp-link"><time datetime="2026-04-08T11:33:31.203Z" data-timestamp="2026-04-08T11:33:31.203Z">2026-04-08T11:33:31.203Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>I now have enough data to build a comprehensive matrix. Let me compile it.</p>
+<hr />
+<h2>Feature Comparison Matrix: Freestyle vs E2B vs Modal vs Daytona vs Blaxel vs Vercel</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th><strong>Freestyle</strong></th>
+<th><strong>E2B</strong></th>
+<th><strong>Modal</strong></th>
+<th><strong>Daytona</strong></th>
+<th><strong>Blaxel</strong></th>
+<th><strong>Vercel Sandbox</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>VM Startup / Cold Start</strong></td>
+<td>~500ms median (320ms median, target 200ms) from memory snapshot</td>
+<td>~150–200ms (microVM snapshot restore)</td>
+<td>2–4s general; ~10s with GPU snapshotting (was ~2min)</td>
+<td>Sub-90ms (some configs 27ms) container-based</td>
+<td>~25ms resume from standby (scales to zero after 5s idle)</td>
+<td>~250ms (Firecracker microVM, Fluid compute)</td>
+</tr>
+<tr>
+<td><strong>Boot Disk Access</strong></td>
+<td>Full root disk; nested virtualization, KVM support</td>
+<td>Full disk access inside Firecracker microVM</td>
+<td>Full volume/disk mounts; network file system</td>
+<td>Full disk access; OCI container images</td>
+<td>Full filesystem access (root FS runs in memory)</td>
+<td>Full disk inside Firecracker microVM; snapshot storage available</td>
+</tr>
+<tr>
+<td><strong>Reboot Support</strong></td>
+<td>Pause/resume via memory snapshots; no explicit "reboot" documented</td>
+<td>Not documented; sessions up to 24h (Pro)</td>
+<td>Containers restart cleanly; persistent volumes survive</td>
+<td>Auto-stop/archive lifecycle; no reboot documented</td>
+<td>Persistent standby with full state resume; implicit reboot via snapshot</td>
+<td>No reboot; ephemeral — stop and recreate is the pattern</td>
+</tr>
+<tr>
+<td><strong>VM Forking</strong></td>
+<td>Yes — fork running VM in ~400ms pause; O(1) copy-on-write regardless of VM size; original unpaused</td>
+<td>In development (not yet GA)</td>
+<td>No forking; scale-out via parallel container spawning</td>
+<td>No forking documented</td>
+<td>Snapshot-based volume cloning; not full live VM fork</td>
+<td>No fork (snapshots restore fresh state; running processes not preserved)</td>
+</tr>
+<tr>
+<td><strong>Full Linux</strong></td>
+<td>Yes — full hardware virtualization (not containers/microVMs), real root, systemd, eBPF, nested virt, multi-user</td>
+<td>Yes — Firecracker microVM, Linux-based</td>
+<td>Yes — custom containers, gVisor isolation, Linux</td>
+<td>Yes — OCI containers, Debian-based, Linux</td>
+<td>Yes — microVMs, full filesystem/shell/process access</td>
+<td>Yes — Firecracker microVM, ephemeral Linux VM</td>
+</tr>
+<tr>
+<td><strong>GPU Support</strong></td>
+<td>No (not on roadmap yet; Modal cited as only provider)</td>
+<td>No (CPU-only; GPU on roadmap)</td>
+<td>Yes — A100, H100, H200, B200, L4, T4; per-second billing</td>
+<td>Yes — 12GB GDDR6 variants (8/16/32-core configs)</td>
+<td>No (not mentioned)</td>
+<td>No</td>
+</tr>
+<tr>
+<td><strong>Language Support</strong></td>
+<td>Node.js, Python (uv), Deno, Bun, Ruby, Java (Corretto)</td>
+<td>Python, JavaScript/TypeScript (primary)</td>
+<td>Python-first; JS/TS and Go for SDK/management</td>
+<td>Python, TypeScript, JavaScript (native execution)</td>
+<td>Python, Node.js, Rust, shell (framework-agnostic)</td>
+<td>Any language via arbitrary code execution; Node.js, Python common</td>
+</tr>
+<tr>
+<td><strong>MCP Server</strong></td>
+<td>Yes — Freestyle VM MCP (file ops, command exec, search/replace); Cloud MCP in development</td>
+<td>Yes — open-source MCP server (Apache-2.0); Docker Docs listed</td>
+<td>Yes — used to host/scale MCP servers; not a first-class managed feature</td>
+<td>Yes — dedicated MCP server; integrates with Claude, Cursor, Windsurf</td>
+<td>Yes — built-in MCP server in every sandbox; HTTP stream compatible</td>
+<td>Yes — Vercel MCP server (for Vercel platform management, not sandbox-native)</td>
+</tr>
+<tr>
+<td><strong>llms.txt</strong></td>
+<td>Yes — <code>freestyle.sh/llms.txt</code> (confirmed, lists all products/features)</td>
+<td>Yes — <code>e2b.mintlify.app/llms.txt</code></td>
+<td>Yes — <code>modal.com/llms-full.txt</code></td>
+<td>Yes — <code>daytona.io/docs/llms.txt</code> and <code>llms-full.txt</code></td>
+<td>Yes — <code>docs.blaxel.ai/llms.txt</code> (confirmed)</td>
+<td>Not confirmed</td>
+</tr>
+<tr>
+<td><strong>Multi-tenant Git</strong></td>
+<td>Yes — built-in git hosting ("only sandbox provider with multi-tenant git hosting"); designed for coding agent platforms</td>
+<td>Native git ops inside sandbox; no hosted multi-tenant git service</td>
+<td>No built-in git hosting; integrates with external repos</td>
+<td>Git clone/credential handling inside sandboxes; no hosted multi-tenant git</td>
+<td>Code review agents can analyze repos; no dedicated git hosting</td>
+<td>GitHub App integration for private repos; no hosted git service</td>
+</tr>
+<tr>
+<td><strong>Serverless Runs</strong></td>
+<td>Yes — "Freestyle Runs" product (500 runs/month free)</td>
+<td>Ephemeral sandboxes (serverless-style, pay per second)</td>
+<td>Yes — core product is serverless functions; auto-scale to zero</td>
+<td>Yes — serverless-style ephemeral sandboxes</td>
+<td>Yes — natively serverless; scale to zero after 5s</td>
+<td>Yes — serverless functions (Fluid compute); 150k invocations/month free</td>
+</tr>
+<tr>
+<td><strong>Deployments</strong></td>
+<td>Yes — Git-triggered auto-deployments, preview deployments, managed domains</td>
+<td>Not a deployment platform; sandboxes only</td>
+<td>Yes — web endpoints, scheduled functions (crons), ASGI/WSGI apps</td>
+<td>Yes — customer-managed compute; open-source self-hostable</td>
+<td>Yes — deploy agents, MCP servers, batch jobs; multi-region</td>
+<td>Yes — core product; Next.js, static, edge, serverless</td>
+</tr>
+<tr>
+<td><strong>Free Tier</strong></td>
+<td>Yes — no credit card; 10 concurrent VMs, 500 repos, 500 runs/mo, 20 vCPU-hr/day, 40 GiB-hr/day</td>
+<td>Yes — $100 one-time credit; 20 concurrent sandboxes, 1-hr sessions, 10 GiB storage</td>
+<td>Yes — $30/month credits; 100 containers, 10 GPU concurrency</td>
+<td>Yes — $200 credits; no credit card required; up to $50k via startup program</td>
+<td>Yes — $200 credits; 10 concurrent sandboxes; no credit card</td>
+<td>Yes — 5 CPU-hr/mo, 420 GB-hr memory, 5,000 sandbox creations, 10 concurrent</td>
+</tr>
+<tr>
+<td><strong>Agent Discoverability</strong></td>
+<td>TypeScript/Python SDK with strongly-typed APIs; MCP tools/list protocol</td>
+<td>MCP tools/list protocol; open-source SDK</td>
+<td>No dedicated discoverability layer; function registry via SDK</td>
+<td>MCP server exposes tools to agents; tools/list protocol</td>
+<td>Dynamic tools/list via MCP at runtime; 360° observability suite; Global Agentics Network</td>
+<td>MCP server for Vercel platform; no sandbox-level agent registry</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>Key Takeaways</h3>
+<p><strong>Freestyle</strong> is the most differentiated on VM forking (live, O(1), ~400ms pause), multi-tenant git hosting, and full hardware virtualization (not microVMs). No GPU. Still early — some features (GPU, advanced DNS, Docker unpacking) are on the roadmap.</p>
+<p><strong>E2B</strong> wins on raw cold start (150–200ms) and has the most mature open-source ecosystem. No GPU, no forking yet. The $100 one-time free credit is less generous long-term than Modal's monthly $30.</p>
+<p><strong>Modal</strong> is the only platform with serious GPU support (H100, B200, etc.) and the go-to for Python-heavy ML workloads. Not focused on sandboxes or agent execution patterns — its strength is serverless GPU functions and batch inference.</p>
+<p><strong>Daytona</strong> is the fastest on paper (sub-90ms, 27ms configs) and uniquely offers GPU. Has llms.txt, MCP server, and $200 free credits. Originally a dev-environment tool that pivoted to AI-generated code infra in Feb 2025.</p>
+<p><strong>Blaxel</strong> (YC S25) is purpose-built for persistent agent sandboxes with 25ms standby resume. Has the most complete MCP-native story (built-in per sandbox), observability, and multi-region. No GPU. $200 free credits.</p>
+<p><strong>Vercel Sandbox</strong> is best for teams already on Vercel deploying Next.js or web apps needing lightweight ephemeral compute alongside deployments. Weakest on agent-specific features (no forking, no git hosting, single region currently). Strong free tier for the use case.</p>
+<hr />
+<p>Sources:
+- <a href="https://www.freestyle.sh/products/vms">Freestyle VMs - Sandboxes for AI Agents</a>
+- <a href="https://docs.freestyle.sh/v2/vms/about">About Freestyle VMs</a>
+- <a href="https://docs.freestyle.sh/roadmap">Freestyle Roadmap</a>
+- <a href="https://www.freestyle.sh/pricing">Freestyle Pricing</a>
+- <a href="https://news.ycombinator.com/item?id=47663147">Launch HN: Freestyle - Sandboxes for Coding Agents</a>
+- <a href="https://e2b.dev/docs">E2B Documentation</a>
+- <a href="https://e2b.dev/pricing">E2B Pricing</a>
+- <a href="https://github.com/HeurisTech/e2b-sandbox-mcp">E2B MCP Server (GitHub)</a>
+- <a href="https://modal.com/pricing">Modal Pricing</a>
+- <a href="https://modal.com/blog/mistral-3">Modal Blog: 10x faster cold starts with GPU snapshotting</a>
+- <a href="https://www.daytona.io/docs/en/sandboxes/">Daytona Sandboxes Docs</a>
+- <a href="https://www.daytona.io/docs/en/mcp/">Daytona MCP Server</a>
+- <a href="https://www.daytona.io/pricing">Daytona Pricing</a>
+- <a href="https://blaxel.ai/sandbox">Blaxel Sandbox</a>
+- <a href="https://docs.blaxel.ai/Overview">Blaxel Documentation</a>
+- <a href="https://blaxel.ai/pricing">Blaxel Pricing</a>
+- <a href="https://vercel.com/docs/vercel-sandbox/pricing">Vercel Sandbox Pricing</a>
+- <a href="https://vercel.com/docs/vercel-sandbox">Vercel Sandbox Docs</a>
+- <a href="https://betterstack.com/community/comparisons/best-sandbox-runners/">11 Best Sandbox Runners 2026 - Better Stack</a>
+- <a href="https://rywalker.com/research/ai-agent-sandboxes">AI Agent Sandboxes Compared - Ry Walker</a></p></div></div></div>
+<div class="message user" id="msg-2026-04-08T11-33-31-312Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-08T11-33-31-312Z" class="timestamp-link"><time datetime="2026-04-08T11:33:31.312Z" data-timestamp="2026-04-08T11:33:31.312Z">2026-04-08T11:33:31.312Z</time></a></div><div class="message-content">
+<div class="user-content"><p><task-notification>
+<task-id>ad4a74ea8706ff1b6</task-id>
+<tool-use-id>toolu_01AKrJxHtHCerrypu3bJTvQh</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-jameswhitford-Desktop-feature-comparison/99561459-14c6-472b-a00e-a86872c47fbf/tasks/ad4a74ea8706ff1b6.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Research E2B features" completed</summary>
+<p><result>Both WebSearch and WebFetch have been denied. I'm unable to browse the web or fetch live pages in this session, which means I cannot retrieve current information from e2b.dev, their docs, GitHub, or any other online source.</p>
+<p>To complete this research task you have two options:</p>
+<p><strong>Option 1: Enable web tools</strong>
+Grant permission for WebSearch and/or WebFetch in your Claude Code settings. Once allowed, I can run a thorough multi-source search across e2b.dev, their docs site, GitHub repos, blog posts, and third-party comparisons and return all the specific details you need.</p>
+<p><strong>Option 2: Provide the sources manually</strong>
+If you have already downloaded or scraped pages from e2b.dev (docs, pricing page, changelog, etc.), paste the content or file paths here and I will extract and structure all the information you need from them.</p>
+<p>What I can tell you from training knowledge (cutoff August 2025, so may be outdated):</p>
+<ul>
+<li>E2B provides Linux-based micro-VMs (using Firecracker) aimed at AI agents</li>
+<li>Advertised cold-start times were in the ~150-500ms range</li>
+<li>Python and JavaScript/TypeScript SDKs were the primary supported languages</li>
+<li>Sandboxes ran full Ubuntu environments with internet access</li>
+<li>A free tier existed with limited sandbox hours</li>
+<li>There was no native GPU support as of mid-2025</li>
+<li>VM forking ("sandbox templates") was a supported feature</li>
+<li>No MCP server or llms.txt was listed in their docs as of my knowledge cutoff</li>
+</ul>
+<p>However, given this is for a feature comparison document, you should not rely on my training data alone. Please enable web access or share the source pages so I can give you verified, current information with proper citations.</result>
+<usage><total_tokens>13780</total_tokens><tool_uses>6</tool_uses><duration_ms>22303</duration_ms></usage>
+</task-notification></p></div></div></div>
+<div class="message user" id="msg-2026-04-08T11-33-31-312Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-08T11-33-31-312Z" class="timestamp-link"><time datetime="2026-04-08T11:33:31.312Z" data-timestamp="2026-04-08T11:33:31.312Z">2026-04-08T11:33:31.312Z</time></a></div><div class="message-content">
+<div class="user-content"><p><task-notification>
+<task-id>aafd23ab492a06b89</task-id>
+<tool-use-id>toolu_01P18PtpbycRdyU8675c5WtP</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-jameswhitford-Desktop-feature-comparison/99561459-14c6-472b-a00e-a86872c47fbf/tasks/aafd23ab492a06b89.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Research Blaxel features" completed</summary>
+<p><result>Both WebSearch and WebFetch are being denied in this environment. I cannot access live web content to research Blaxel.</p>
+<p>Here is what is happening and what you need to do:</p>
+<p>The tools required to complete this research task (WebSearch and WebFetch) are available in the Claude Code harness but their permissions have been denied in this session. This is a permissions/approval issue, not a capability gap.</p>
+<p>To fix this, you have two options:</p>
+<ol>
+<li>
+<p><strong>Grant permission in the Claude Code UI.</strong> When a tool permission prompt appears asking whether to allow WebSearch or WebFetch, click "Allow" (or "Allow for this session"). Then ask me the question again and I will run the full research.</p>
+</li>
+<li>
+<p><strong>Run the research manually via the CLI</strong> using <code>curl</code> or a browser, then paste the content here and I can analyze and organize it for you.</p>
+</li>
+</ol>
+<p>What I would research if given access:
+- <code>https://blaxel.ai</code> - main marketing page for headline features
+- <code>https://docs.blaxel.ai</code> - technical documentation for startup times, GPU, language support, MCP, etc.
+- <code>https://blaxel.ai/pricing</code> - free tier and plan details
+- GitHub at <code>github.com/blaxel-ai</code> - for open-source components, llms.txt, language SDKs
+- Any blog posts or changelog entries for cold start benchmarks and forking/reboot details</p>
+<p>Once you grant WebSearch/WebFetch permission and re-ask, I can pull all of that in parallel and give you a structured breakdown of all 14 feature areas with citations.</result>
+<usage><total_tokens>13789</total_tokens><tool_uses>6</tool_uses><duration_ms>21235</duration_ms></usage>
+</task-notification></p></div></div></div>
+<div class="message user" id="msg-2026-04-08T11-33-31-312Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-04-08T11-33-31-312Z" class="timestamp-link"><time datetime="2026-04-08T11:33:31.312Z" data-timestamp="2026-04-08T11:33:31.312Z">2026-04-08T11:33:31.312Z</time></a></div><div class="message-content">
+<div class="user-content"><p><task-notification>
+<task-id>a85e5aa0a633d0f8d</task-id>
+<tool-use-id>toolu_01VAFxA7dNopFUCWFwBBJN8G</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-jameswhitford-Desktop-feature-comparison/99561459-14c6-472b-a00e-a86872c47fbf/tasks/a85e5aa0a633d0f8d.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Research Daytona features" completed</summary>
+<p><result>Both WebSearch and WebFetch are being denied in this environment. I cannot access the web to research Daytona in real time.</p>
+<p>Here is what I can offer from my training knowledge (cutoff August 2025), which should cover much of what you need, though I cannot guarantee it reflects the very latest state of the product:</p>
+<hr />
+<p><strong>Daytona - Feature Research (from training knowledge, up to ~August 2025)</strong></p>
+<p>Daytona is an open-source development environment manager (self-hosted or SaaS) built around the concept of standardized, reproducible workspaces. Here is what I know across your requested categories:</p>
+<p><strong>1. VM Startup Speed / Cold Start Times</strong>
+Daytona markets fast workspace creation. In their documentation and marketing they cite workspace creation in seconds rather than minutes. Specific sub-second numbers (e.g. 90ms) are associated with competitors like Microsandbox or Modal, not Daytona specifically. Daytona's typical workspace creation is described as fast but measured in seconds (often 5-30s depending on the dev container image), not milliseconds. I do not have a precise advertised cold-start figure for Daytona.</p>
+<p><strong>2. Boot Disk Access</strong>
+Daytona workspaces use standard Linux filesystem access. No specific "boot disk" feature or restriction is prominently documented. Workspaces run in containers or VMs with full disk access within the workspace volume.</p>
+<p><strong>3. Reboot Support</strong>
+Workspaces can be stopped and restarted. Full VM reboot as a feature is not a prominently advertised capability. Workspace state is persisted between stops/starts.</p>
+<p><strong>4. VM Forking</strong>
+Daytona does not prominently advertise a VM forking or snapshot-and-fork capability (as seen in platforms like Fly Machines). This feature is not one I can confirm from their public documentation.</p>
+<p><strong>5. Full Linux Support</strong>
+Yes. Daytona workspaces are Linux-based (typically Debian/Ubuntu derived dev containers). You get a full Linux environment with root/sudo access within the workspace.</p>
+<p><strong>6. GPU Support</strong>
+As of my knowledge cutoff, GPU support was not a prominently listed feature of Daytona. The platform is focused on development environments rather than compute-heavy GPU workloads.</p>
+<p><strong>7. Language Support</strong>
+Daytona is language-agnostic. It uses Dev Container specifications (devcontainer.json), which means any language with a dev container image is supported. Officially highlighted examples include: Python, Node.js/JavaScript/TypeScript, Go, Java, Ruby, PHP, Rust, .NET/C#. Essentially any language that runs on Linux.</p>
+<p><strong>8. MCP Server Availability</strong>
+Daytona has been actively building AI/agent-friendly features. By mid-2025 they had announced or were building MCP (Model Context Protocol) server support to allow AI agents to interact with workspaces programmatically. Whether a production MCP server was fully available at cutoff I cannot confirm with certainty.</p>
+<p><strong>9. llms.txt Availability</strong>
+I do not have specific information confirming whether daytona.io publishes an llms.txt file.</p>
+<p><strong>10. Multi-Tenant Git Support</strong>
+Daytona supports multiple Git providers (GitHub, GitLab, Bitbucket, Gitea, Azure DevOps). Multi-tenant in the sense of multiple users/teams with separate workspaces is supported, especially in the self-hosted enterprise version. Team-level workspace isolation and access control is part of the platform.</p>
+<p><strong>11. Serverless Runs</strong>
+Daytona is not primarily positioned as a serverless compute platform. Workspaces are persistent environments, not ephemeral serverless function runners.</p>
+<p><strong>12. Deployments</strong>
+Daytona is a development environment tool, not a deployment/hosting platform. It does not deploy applications to production. It is focused on the dev workflow (coding, testing, CI).</p>
+<p><strong>13. Free Tier Details</strong>
+Daytona has an open-source self-hosted version (free, Apache 2.0 licensed). Their cloud/SaaS product (Daytona Cloud) was in various stages of beta/early access as of mid-2025. Specific free tier limits (hours, workspace count, compute) for the SaaS version were not finalized and publicly documented at my cutoff. The self-hosted version is effectively free with no usage limits (you provide your own infrastructure).</p>
+<p><strong>14. Agent Discoverability</strong>
+Daytona has been positioning itself for the AI agent use case, specifically as a sandboxed environment for running AI coding agents (e.g. with tools like Claude, Cursor, Copilot). They have an API and SDK to programmatically create and manage workspaces. Whether they have a formal "agent registry" or discoverability mechanism is not something I can confirm.</p>
+<hr />
+<p><strong>Important caveat:</strong> WebSearch and WebFetch are both permission-denied in this session, so I cannot pull live data from daytona.io, their docs, GitHub, or any reviews. The information above is from training data up to approximately August 2025. For a feature comparison requiring accuracy (especially on startup times, pricing, and MCP/llms.txt status), you should verify directly at:</p>
+<ul>
+<li>https://www.daytona.io</li>
+<li>https://www.daytona.io/docs</li>
+<li>https://github.com/daytonaio/daytona</li>
+<li>https://www.daytona.io/dotfiles (blog/updates)</li>
+</ul>
+<p>To enable live research, you would need to grant permission for the WebSearch and/or WebFetch tools in this session.</result>
+<usage><total_tokens>13688</total_tokens><tool_uses>6</tool_uses><duration_ms>41124</duration_ms></usage>
+</task-notification></p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<span class="disabled">&larr; Prev</span>
+<span class="current">1</span>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-002.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

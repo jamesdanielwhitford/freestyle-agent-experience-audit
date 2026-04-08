@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - Index</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-row">
+            <h1>Claude Code transcript</h1>
+            <div id="search-box">
+                <input type="text" id="search-input" placeholder="Search..." aria-label="Search transcripts">
+                <button id="search-btn" type="button" aria-label="Search">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+                </button>
+            </div>
+        </div>
+        
+
+<div class="pagination">
+<span class="current">Index</span>
+<span class="disabled">&larr; Prev</span>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-001.html">Next &rarr;</a>
+</div>
+
+        <p style="color: var(--text-muted); margin-bottom: 24px;">11 prompts · 91 messages · 36 tool calls · 0 commits · 3 pages</p>
+        
+<div class="index-item"><a href="page-001.html#msg-2026-04-08T11-30-30-852Z"><div class="index-item-header"><span class="index-item-number">#1</span><time datetime="2026-04-08T11:30:30.852Z" data-timestamp="2026-04-08T11:30:30.852Z">2026-04-08T11:30:30.852Z</time></div><div class="index-item-content"><p>Use web search to build a feature comparison matrix for Freestyle (freestyle.sh)
+and its main competitors: E2B, Modal, Daytona, Blaxel, and Vercel. Cover VM startup
+speed, cold start times, boot disk access, reboot support, VM forking, full Linux
+support, GPU support, language support, MCP server availability, llms.txt, multi-tenant
+Git, serverless runs, deployments, free tier, and agent discoverability.</p></div></a><div class="index-item-stats"><span>6 agent</span>
+</div></div>
+<div class="index-item"><a href="page-001.html#msg-2026-04-08T11-31-04-146Z"><div class="index-item-header"><span class="index-item-number">#2</span><time datetime="2026-04-08T11:31:04.146Z" data-timestamp="2026-04-08T11:31:04.146Z">2026-04-08T11:31:04.146Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>ae714ddd8872ac536</task-id>
+<tool-use-id>toolu_01RAa3wQkxf9o8goodNDKzCz</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-jameswhitford-Desktop-feature-comparison/99561459-14c6-472b-a00e-a86872c47fbf/tasks/ae714ddd8872ac536.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Research Freestyle.sh features" completed</summary>
+<p><result>Both WebSearch and WebFetch are blocked in this environment. I'm unable to access the internet to research Freestyle (freestyle.sh) in real time.</p>
+<p>Here is what I can tell you from my training data knowledge (cutoff August 2025), which may be incomplete or outdated given your current date of April 2026:</p>
+<p><strong>Freestyle (freestyle.sh)</strong> is a cloud sandbox/VM platform aimed at running code in isolated environments, particularly for AI agent workloads. However, as of my knowledge cutoff, it was a relatively early-stage or niche product, and I do not have reliable, specific details across all the data points you need (cold start numbers, exact pricing tiers, MCP server support, llms.txt availability, etc.) to give you the accurate, citable answers a feature comparison requires.</p>
+<p>To get the information you need, I would recommend:</p>
+<ol>
+<li><strong>Visiting https://freestyle.sh directly</strong> and checking their docs, pricing page, and changelog.</li>
+<li><strong>Checking https://freestyle.sh/llms.txt</strong> to see if they publish a machine-readable summary (many AI-era developer tools do).</li>
+<li><strong>Checking their docs site</strong> (likely docs.freestyle.sh or similar).</li>
+<li><strong>Searching GitHub</strong> for their repos or issues, which often contain benchmark data and feature discussions.</li>
+<li><strong>Checking their blog</strong> for posts about architecture (cold start times and forking are often announced in launch posts).</li>
+</ol>
+<p>To unblock this research in Claude Code, you or an admin would need to grant permission for the WebSearch and WebFetch tools. Once those are allowed, I can pull all of this directly and return the specific numbers and citations you need.</result>
+<usage><total_tokens>13700</total_tokens><tool_uses>6</tool_uses><duration_ms>21327</duration_ms></usage>
+</task-notification></p></div></a><div class="index-item-stats"><span>18 fetch · 11 search · 1 toolsearch</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>I now have enough data to build a comprehensive matrix. Let me compile it.</p>
+<hr />
+<h2>Feature Comparison Matrix: Freestyle vs E2B vs Modal vs Daytona vs Blaxel vs Vercel</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th><strong>Freestyle</strong></th>
+<th><strong>E2B</strong></th>
+<th><strong>Modal</strong></th>
+<th><strong>Daytona</strong></th>
+<th><strong>Blaxel</strong></th>
+<th><strong>Vercel Sandbox</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>VM Startup / Cold Start</strong></td>
+<td>~500ms median (320ms median, target 200ms) from memory snapshot</td>
+<td>~150–200ms (microVM snapshot restore)</td>
+<td>2–4s general; ~10s with GPU snapshotting (was ~2min)</td>
+<td>Sub-90ms (some configs 27ms) container-based</td>
+<td>~25ms resume from standby (scales to zero after 5s idle)</td>
+<td>~250ms (Firecracker microVM, Fluid compute)</td>
+</tr>
+<tr>
+<td><strong>Boot Disk Access</strong></td>
+<td>Full root disk; nested virtualization, KVM support</td>
+<td>Full disk access inside Firecracker microVM</td>
+<td>Full volume/disk mounts; network file system</td>
+<td>Full disk access; OCI container images</td>
+<td>Full filesystem access (root FS runs in memory)</td>
+<td>Full disk inside Firecracker microVM; snapshot storage available</td>
+</tr>
+<tr>
+<td><strong>Reboot Support</strong></td>
+<td>Pause/resume via memory snapshots; no explicit "reboot" documented</td>
+<td>Not documented; sessions up to 24h (Pro)</td>
+<td>Containers restart cleanly; persistent volumes survive</td>
+<td>Auto-stop/archive lifecycle; no reboot documented</td>
+<td>Persistent standby with full state resume; implicit reboot via snapshot</td>
+<td>No reboot; ephemeral — stop and recreate is the pattern</td>
+</tr>
+<tr>
+<td><strong>VM Forking</strong></td>
+<td>Yes — fork running VM in ~400ms pause; O(1) copy-on-write regardless of VM size; original unpaused</td>
+<td>In development (not yet GA)</td>
+<td>No forking; scale-out via parallel container spawning</td>
+<td>No forking documented</td>
+<td>Snapshot-based volume cloning; not full live VM fork</td>
+<td>No fork (snapshots restore fresh state; running processes not preserved)</td>
+</tr>
+<tr>
+<td><strong>Full Linux</strong></td>
+<td>Yes — full hardware virtualization (not containers/microVMs), real root, systemd, eBPF, nested virt, multi-user</td>
+<td>Yes — Firecracker microVM, Linux-based</td>
+<td>Yes — custom containers, gVisor isolation, Linux</td>
+<td>Yes — OCI containers, Debian-based, Linux</td>
+<td>Yes — microVMs, full filesystem/shell/process access</td>
+<td>Yes — Firecracker microVM, ephemeral Linux VM</td>
+</tr>
+<tr>
+<td><strong>GPU Support</strong></td>
+<td>No (not on roadmap yet; Modal cited as only provider)</td>
+<td>No (CPU-only; GPU on roadmap)</td>
+<td>Yes — A100, H100, H200, B200, L4, T4; per-second billing</td>
+<td>Yes — 12GB GDDR6 variants (8/16/32-core configs)</td>
+<td>No (not mentioned)</td>
+<td>No</td>
+</tr>
+<tr>
+<td><strong>Language Support</strong></td>
+<td>Node.js, Python (uv), Deno, Bun, Ruby, Java (Corretto)</td>
+<td>Python, JavaScript/TypeScript (primary)</td>
+<td>Python-first; JS/TS and Go for SDK/management</td>
+<td>Python, TypeScript, JavaScript (native execution)</td>
+<td>Python, Node.js, Rust, shell (framework-agnostic)</td>
+<td>Any language via arbitrary code execution; Node.js, Python common</td>
+</tr>
+<tr>
+<td><strong>MCP Server</strong></td>
+<td>Yes — Freestyle VM MCP (file ops, command exec, search/replace); Cloud MCP in development</td>
+<td>Yes — open-source MCP server (Apache-2.0); Docker Docs listed</td>
+<td>Yes — used to host/scale MCP servers; not a first-class managed feature</td>
+<td>Yes — dedicated MCP server; integrates with Claude, Cursor, Windsurf</td>
+<td>Yes — built-in MCP server in every sandbox; HTTP stream compatible</td>
+<td>Yes — Vercel MCP server (for Vercel platform management, not sandbox-native)</td>
+</tr>
+<tr>
+<td><strong>llms.txt</strong></td>
+<td>Yes — <code>freestyle.sh/llms.txt</code> (confirmed, lists all products/features)</td>
+<td>Yes — <code>e2b.mintlify.app/llms.txt</code></td>
+<td>Yes — <code>modal.com/llms-full.txt</code></td>
+<td>Yes — <code>daytona.io/docs/llms.txt</code> and <code>llms-full.txt</code></td>
+<td>Yes — <code>docs.blaxel.ai/llms.txt</code> (confirmed)</td>
+<td>Not confirmed</td>
+</tr>
+<tr>
+<td><strong>Multi-tenant Git</strong></td>
+<td>Yes — built-in git hosting ("only sandbox provider with multi-tenant git hosting"); designed for coding agent platforms</td>
+<td>Native git ops inside sandbox; no hosted multi-tenant git service</td>
+<td>No built-in git hosting; integrates with external repos</td>
+<td>Git clone/credential handling inside sandboxes; no hosted multi-tenant git</td>
+<td>Code review agents can analyze repos; no dedicated git hosting</td>
+<td>GitHub App integration for private repos; no hosted git service</td>
+</tr>
+<tr>
+<td><strong>Serverless Runs</strong></td>
+<td>Yes — "Freestyle Runs" product (500 runs/month free)</td>
+<td>Ephemeral sandboxes (serverless-style, pay per second)</td>
+<td>Yes — core product is serverless functions; auto-scale to zero</td>
+<td>Yes — serverless-style ephemeral sandboxes</td>
+<td>Yes — natively serverless; scale to zero after 5s</td>
+<td>Yes — serverless functions (Fluid compute); 150k invocations/month free</td>
+</tr>
+<tr>
+<td><strong>Deployments</strong></td>
+<td>Yes — Git-triggered auto-deployments, preview deployments, managed domains</td>
+<td>Not a deployment platform; sandboxes only</td>
+<td>Yes — web endpoints, scheduled functions (crons), ASGI/WSGI apps</td>
+<td>Yes — customer-managed compute; open-source self-hostable</td>
+<td>Yes — deploy agents, MCP servers, batch jobs; multi-region</td>
+<td>Yes — core product; Next.js, static, edge, serverless</td>
+</tr>
+<tr>
+<td><strong>Free Tier</strong></td>
+<td>Yes — no credit card; 10 concurrent VMs, 500 repos, 500 runs/mo, 20 vCPU-hr/day, 40 GiB-hr/day</td>
+<td>Yes — $100 one-time credit; 20 concurrent sandboxes, 1-hr sessions, 10 GiB storage</td>
+<td>Yes — $30/month credits; 100 containers, 10 GPU concurrency</td>
+<td>Yes — $200 credits; no credit card required; up to $50k via startup program</td>
+<td>Yes — $200 credits; 10 concurrent sandboxes; no credit card</td>
+<td>Yes — 5 CPU-hr/mo, 420 GB-hr memory, 5,000 sandbox creations, 10 concurrent</td>
+</tr>
+<tr>
+<td><strong>Agent Discoverability</strong></td>
+<td>TypeScript/Python SDK with strongly-typed APIs; MCP tools/list protocol</td>
+<td>MCP tools/list protocol; open-source SDK</td>
+<td>No dedicated discoverability layer; function registry via SDK</td>
+<td>MCP server exposes tools to agents; tools/list protocol</td>
+<td>Dynamic tools/list via MCP at runtime; 360° observability suite; Global Agentics Network</td>
+<td>MCP server for Vercel platform; no sandbox-level agent registry</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>Key Takeaways</h3>
+<p><strong>Freestyle</strong> is the most differentiated on VM forking (live, O(1), ~400ms pause), multi-tenant git hosting, and full hardware virtualization (not microVMs). No GPU. Still early — some features (GPU, advanced DNS, Docker unpacking) are on the roadmap.</p>
+<p><strong>E2B</strong> wins on raw cold start (150–200ms) and has the most mature open-source ecosystem. No GPU, no forking yet. The $100 one-time free credit is less generous long-term than Modal's monthly $30.</p>
+<p><strong>Modal</strong> is the only platform with serious GPU support (H100, B200, etc.) and the go-to for Python-heavy ML workloads. Not focused on sandboxes or agent execution patterns — its strength is serverless GPU functions and batch inference.</p>
+<p><strong>Daytona</strong> is the fastest on paper (sub-90ms, 27ms configs) and uniquely offers GPU. Has llms.txt, MCP server, and $200 free credits. Originally a dev-environment tool that pivoted to AI-generated code infra in Feb 2025.</p>
+<p><strong>Blaxel</strong> (YC S25) is purpose-built for persistent agent sandboxes with 25ms standby resume. Has the most complete MCP-native story (built-in per sandbox), observability, and multi-region. No GPU. $200 free credits.</p>
+<p><strong>Vercel Sandbox</strong> is best for teams already on Vercel deploying Next.js or web apps needing lightweight ephemeral compute alongside deployments. Weakest on agent-specific features (no forking, no git hosting, single region currently). Strong free tier for the use case.</p>
+<hr />
+<p>Sources:
+- <a href="https://www.freestyle.sh/products/vms">Freestyle VMs - Sandboxes for AI Agents</a>
+- <a href="https://docs.freestyle.sh/v2/vms/about">About Freestyle VMs</a>
+- <a href="https://docs.freestyle.sh/roadmap">Freestyle Roadmap</a>
+- <a href="https://www.freestyle.sh/pricing">Freestyle Pricing</a>
+- <a href="https://news.ycombinator.com/item?id=47663147">Launch HN: Freestyle - Sandboxes for Coding Agents</a>
+- <a href="https://e2b.dev/docs">E2B Documentation</a>
+- <a href="https://e2b.dev/pricing">E2B Pricing</a>
+- <a href="https://github.com/HeurisTech/e2b-sandbox-mcp">E2B MCP Server (GitHub)</a>
+- <a href="https://modal.com/pricing">Modal Pricing</a>
+- <a href="https://modal.com/blog/mistral-3">Modal Blog: 10x faster cold starts with GPU snapshotting</a>
+- <a href="https://www.daytona.io/docs/en/sandboxes/">Daytona Sandboxes Docs</a>
+- <a href="https://www.daytona.io/docs/en/mcp/">Daytona MCP Server</a>
+- <a href="https://www.daytona.io/pricing">Daytona Pricing</a>
+- <a href="https://blaxel.ai/sandbox">Blaxel Sandbox</a>
+- <a href="https://docs.blaxel.ai/Overview">Blaxel Documentation</a>
+- <a href="https://blaxel.ai/pricing">Blaxel Pricing</a>
+- <a href="https://vercel.com/docs/vercel-sandbox/pricing">Vercel Sandbox Pricing</a>
+- <a href="https://vercel.com/docs/vercel-sandbox">Vercel Sandbox Docs</a>
+- <a href="https://betterstack.com/community/comparisons/best-sandbox-runners/">11 Best Sandbox Runners 2026 - Better Stack</a>
+- <a href="https://rywalker.com/research/ai-agent-sandboxes">AI Agent Sandboxes Compared - Ry Walker</a></p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-001.html#msg-2026-04-08T11-33-31-312Z"><div class="index-item-header"><span class="index-item-number">#3</span><time datetime="2026-04-08T11:33:31.312Z" data-timestamp="2026-04-08T11:33:31.312Z">2026-04-08T11:33:31.312Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>ad4a74ea8706ff1b6</task-id>
+<tool-use-id>toolu_01AKrJxHtHCerrypu3bJTvQh</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-jameswhitford-Desktop-feature-comparison/99561459-14c6-472b-a00e-a86872c47fbf/tasks/ad4a74ea8706ff1b6.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Research E2B features" completed</summary>
+<p><result>Both WebSearch and WebFetch have been denied. I'm unable to browse the web or fetch live pages in this session, which means I cannot retrieve current information from e2b.dev, their docs, GitHub, or any other online source.</p>
+<p>To complete this research task you have two options:</p>
+<p><strong>Option 1: Enable web tools</strong>
+Grant permission for WebSearch and/or WebFetch in your Claude Code settings. Once allowed, I can run a thorough multi-source search across e2b.dev, their docs site, GitHub repos, blog posts, and third-party comparisons and return all the specific details you need.</p>
+<p><strong>Option 2: Provide the sources manually</strong>
+If you have already downloaded or scraped pages from e2b.dev (docs, pricing page, changelog, etc.), paste the content or file paths here and I will extract and structure all the information you need from them.</p>
+<p>What I can tell you from training knowledge (cutoff August 2025, so may be outdated):</p>
+<ul>
+<li>E2B provides Linux-based micro-VMs (using Firecracker) aimed at AI agents</li>
+<li>Advertised cold-start times were in the ~150-500ms range</li>
+<li>Python and JavaScript/TypeScript SDKs were the primary supported languages</li>
+<li>Sandboxes ran full Ubuntu environments with internet access</li>
+<li>A free tier existed with limited sandbox hours</li>
+<li>There was no native GPU support as of mid-2025</li>
+<li>VM forking ("sandbox templates") was a supported feature</li>
+<li>No MCP server or llms.txt was listed in their docs as of my knowledge cutoff</li>
+</ul>
+<p>However, given this is for a feature comparison document, you should not rely on my training data alone. Please enable web access or share the source pages so I can give you verified, current information with proper citations.</result>
+<usage><total_tokens>13780</total_tokens><tool_uses>6</tool_uses><duration_ms>22303</duration_ms></usage>
+</task-notification></p></div></a></div>
+<div class="index-item"><a href="page-001.html#msg-2026-04-08T11-33-31-312Z"><div class="index-item-header"><span class="index-item-number">#4</span><time datetime="2026-04-08T11:33:31.312Z" data-timestamp="2026-04-08T11:33:31.312Z">2026-04-08T11:33:31.312Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>aafd23ab492a06b89</task-id>
+<tool-use-id>toolu_01P18PtpbycRdyU8675c5WtP</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-jameswhitford-Desktop-feature-comparison/99561459-14c6-472b-a00e-a86872c47fbf/tasks/aafd23ab492a06b89.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Research Blaxel features" completed</summary>
+<p><result>Both WebSearch and WebFetch are being denied in this environment. I cannot access live web content to research Blaxel.</p>
+<p>Here is what is happening and what you need to do:</p>
+<p>The tools required to complete this research task (WebSearch and WebFetch) are available in the Claude Code harness but their permissions have been denied in this session. This is a permissions/approval issue, not a capability gap.</p>
+<p>To fix this, you have two options:</p>
+<ol>
+<li>
+<p><strong>Grant permission in the Claude Code UI.</strong> When a tool permission prompt appears asking whether to allow WebSearch or WebFetch, click "Allow" (or "Allow for this session"). Then ask me the question again and I will run the full research.</p>
+</li>
+<li>
+<p><strong>Run the research manually via the CLI</strong> using <code>curl</code> or a browser, then paste the content here and I can analyze and organize it for you.</p>
+</li>
+</ol>
+<p>What I would research if given access:
+- <code>https://blaxel.ai</code> - main marketing page for headline features
+- <code>https://docs.blaxel.ai</code> - technical documentation for startup times, GPU, language support, MCP, etc.
+- <code>https://blaxel.ai/pricing</code> - free tier and plan details
+- GitHub at <code>github.com/blaxel-ai</code> - for open-source components, llms.txt, language SDKs
+- Any blog posts or changelog entries for cold start benchmarks and forking/reboot details</p>
+<p>Once you grant WebSearch/WebFetch permission and re-ask, I can pull all of that in parallel and give you a structured breakdown of all 14 feature areas with citations.</result>
+<usage><total_tokens>13789</total_tokens><tool_uses>6</tool_uses><duration_ms>21235</duration_ms></usage>
+</task-notification></p></div></a></div>
+<div class="index-item"><a href="page-001.html#msg-2026-04-08T11-33-31-312Z"><div class="index-item-header"><span class="index-item-number">#5</span><time datetime="2026-04-08T11:33:31.312Z" data-timestamp="2026-04-08T11:33:31.312Z">2026-04-08T11:33:31.312Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>a85e5aa0a633d0f8d</task-id>
+<tool-use-id>toolu_01VAFxA7dNopFUCWFwBBJN8G</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-jameswhitford-Desktop-feature-comparison/99561459-14c6-472b-a00e-a86872c47fbf/tasks/a85e5aa0a633d0f8d.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Research Daytona features" completed</summary>
+<p><result>Both WebSearch and WebFetch are being denied in this environment. I cannot access the web to research Daytona in real time.</p>
+<p>Here is what I can offer from my training knowledge (cutoff August 2025), which should cover much of what you need, though I cannot guarantee it reflects the very latest state of the product:</p>
+<hr />
+<p><strong>Daytona - Feature Research (from training knowledge, up to ~August 2025)</strong></p>
+<p>Daytona is an open-source development environment manager (self-hosted or SaaS) built around the concept of standardized, reproducible workspaces. Here is what I know across your requested categories:</p>
+<p><strong>1. VM Startup Speed / Cold Start Times</strong>
+Daytona markets fast workspace creation. In their documentation and marketing they cite workspace creation in seconds rather than minutes. Specific sub-second numbers (e.g. 90ms) are associated with competitors like Microsandbox or Modal, not Daytona specifically. Daytona's typical workspace creation is described as fast but measured in seconds (often 5-30s depending on the dev container image), not milliseconds. I do not have a precise advertised cold-start figure for Daytona.</p>
+<p><strong>2. Boot Disk Access</strong>
+Daytona workspaces use standard Linux filesystem access. No specific "boot disk" feature or restriction is prominently documented. Workspaces run in containers or VMs with full disk access within the workspace volume.</p>
+<p><strong>3. Reboot Support</strong>
+Workspaces can be stopped and restarted. Full VM reboot as a feature is not a prominently advertised capability. Workspace state is persisted between stops/starts.</p>
+<p><strong>4. VM Forking</strong>
+Daytona does not prominently advertise a VM forking or snapshot-and-fork capability (as seen in platforms like Fly Machines). This feature is not one I can confirm from their public documentation.</p>
+<p><strong>5. Full Linux Support</strong>
+Yes. Daytona workspaces are Linux-based (typically Debian/Ubuntu derived dev containers). You get a full Linux environment with root/sudo access within the workspace.</p>
+<p><strong>6. GPU Support</strong>
+As of my knowledge cutoff, GPU support was not a prominently listed feature of Daytona. The platform is focused on development environments rather than compute-heavy GPU workloads.</p>
+<p><strong>7. Language Support</strong>
+Daytona is language-agnostic. It uses Dev Container specifications (devcontainer.json), which means any language with a dev container image is supported. Officially highlighted examples include: Python, Node.js/JavaScript/TypeScript, Go, Java, Ruby, PHP, Rust, .NET/C#. Essentially any language that runs on Linux.</p>
+<p><strong>8. MCP Server Availability</strong>
+Daytona has been actively building AI/agent-friendly features. By mid-2025 they had announced or were building MCP (Model Context Protocol) server support to allow AI agents to interact with workspaces programmatically. Whether a production MCP server was fully available at cutoff I cannot confirm with certainty.</p>
+<p><strong>9. llms.txt Availability</strong>
+I do not have specific information confirming whether daytona.io publishes an llms.txt file.</p>
+<p><strong>10. Multi-Tenant Git Support</strong>
+Daytona supports multiple Git providers (GitHub, GitLab, Bitbucket, Gitea, Azure DevOps). Multi-tenant in the sense of multiple users/teams with separate workspaces is supported, especially in the self-hosted enterprise version. Team-level workspace isolation and access control is part of the platform.</p>
+<p><strong>11. Serverless Runs</strong>
+Daytona is not primarily positioned as a serverless compute platform. Workspaces are persistent environments, not ephemeral serverless function runners.</p>
+<p><strong>12. Deployments</strong>
+Daytona is a development environment tool, not a deployment/hosting platform. It does not deploy applications to production. It is focused on the dev workflow (coding, testing, CI).</p>
+<p><strong>13. Free Tier Details</strong>
+Daytona has an open-source self-hosted version (free, Apache 2.0 licensed). Their cloud/SaaS product (Daytona Cloud) was in various stages of beta/early access as of mid-2025. Specific free tier limits (hours, workspace count, compute) for the SaaS version were not finalized and publicly documented at my cutoff. The self-hosted version is effectively free with no usage limits (you provide your own infrastructure).</p>
+<p><strong>14. Agent Discoverability</strong>
+Daytona has been positioning itself for the AI agent use case, specifically as a sandboxed environment for running AI coding agents (e.g. with tools like Claude, Cursor, Copilot). They have an API and SDK to programmatically create and manage workspaces. Whether they have a formal "agent registry" or discoverability mechanism is not something I can confirm.</p>
+<hr />
+<p><strong>Important caveat:</strong> WebSearch and WebFetch are both permission-denied in this session, so I cannot pull live data from daytona.io, their docs, GitHub, or any reviews. The information above is from training data up to approximately August 2025. For a feature comparison requiring accuracy (especially on startup times, pricing, and MCP/llms.txt status), you should verify directly at:</p>
+<ul>
+<li>https://www.daytona.io</li>
+<li>https://www.daytona.io/docs</li>
+<li>https://github.com/daytonaio/daytona</li>
+<li>https://www.daytona.io/dotfiles (blog/updates)</li>
+</ul>
+<p>To enable live research, you would need to grant permission for the WebSearch and/or WebFetch tools in this session.</result>
+<usage><total_tokens>13688</total_tokens><tool_uses>6</tool_uses><duration_ms>41124</duration_ms></usage>
+</task-notification></p></div></a></div>
+<div class="index-item"><a href="page-002.html#msg-2026-04-08T11-33-31-312Z"><div class="index-item-header"><span class="index-item-number">#6</span><time datetime="2026-04-08T11:33:31.312Z" data-timestamp="2026-04-08T11:33:31.312Z">2026-04-08T11:33:31.312Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>a66a49d24818ef2a9</task-id>
+<tool-use-id>toolu_014vrm5dZxYfCJxV96mRqsd6</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-jameswhitford-Desktop-feature-comparison/99561459-14c6-472b-a00e-a86872c47fbf/tasks/a66a49d24818ef2a9.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Research Modal features" completed</summary>
+<p><result>Both WebSearch and WebFetch are blocked in this environment. I can't access live web content to research Modal's current features.</p>
+<p>Here is what I can tell you based on my training knowledge (cutoff August 2025), which should still be largely accurate for Modal's feature set:</p>
+<hr />
+<h2>Modal (modal.com) - Feature Research</h2>
+<h3>1. VM Startup Speed / Cold Start Times</h3>
+<p>Modal is built around very fast cold starts. Container cold starts are typically in the range of 1-3 seconds for pre-built images (using <code>modal.Image</code>). Modal caches container images aggressively. When containers are "warm" (kept alive via <code>keep_warm</code> or <code>container_idle_timeout</code>), invocations are near-instant (sub-100ms). The platform is specifically architected to minimize cold starts compared to AWS Lambda or GCP Cloud Run. Exact published numbers vary by workload, but Modal has claimed sub-second cold starts for many workloads in blog posts.</p>
+<h3>2. Boot Disk Access</h3>
+<p>Modal containers run on ephemeral scratch disks by default. Modal provides <code>modal.Volume</code> (a persistent, network-attached filesystem that can be mounted into containers) and <code>modal.CloudBucketMount</code> for S3/GCS access. There is no persistent local boot disk in the traditional VM sense - the container filesystem is ephemeral per run.</p>
+<h3>3. Reboot Support</h3>
+<p>Modal does not offer traditional VM reboots. It is a container/serverless model. You can restart a container by re-invoking a function, but there is no "reboot" primitive. Long-running containers can be configured with <code>keep_warm</code>.</p>
+<h3>4. VM Forking Capability</h3>
+<p>Modal does not expose VM/container forking (like <code>fork()</code> at the infrastructure level) as a user-facing primitive. This is not a documented feature as of my knowledge cutoff.</p>
+<h3>5. Full Linux Support</h3>
+<p>Yes. Modal containers run on Linux (Debian/Ubuntu-based). You can install arbitrary system packages via <code>modal.Image.apt_install()</code>, run arbitrary binaries, and have full root access inside containers. You choose the base image (e.g., <code>debian:bookworm</code>, <code>ubuntu:22.04</code>, or pre-built ML images).</p>
+<h3>6. GPU Support</h3>
+<p>Yes, extensive. Modal offers:
+- NVIDIA A10G, A100 (40GB and 80GB), H100, T4, L4 GPUs
+- Multi-GPU configurations
+- GPU access is specified per-function via <code>gpu="A100"</code> or <code>gpu=modal.gpu.H100()</code>
+- Billed per second of GPU use
+- H100s are available (SXM and PCIe variants)</p>
+<h3>7. Language Support</h3>
+<p>Modal's SDK is Python-first. The core interface is a Python SDK (<code>pip install modal</code>). However:
+- You can run any language inside containers (Node.js, Go, Rust, Ruby, etc.) by installing them in the image
+- There is a REST API / webhook support so non-Python callers can trigger Modal functions
+- As of late 2024/early 2025, Modal added support for running web endpoints that any language can call
+- Native SDKs for languages other than Python are not officially published</p>
+<h3>8. MCP Server Availability</h3>
+<p>Modal has published an MCP (Model Context Protocol) server. As of early 2025, Modal released tooling to deploy MCP servers as Modal apps, making it easy to host MCP servers serverlessly. There were blog posts and docs about this. Whether Modal itself exposes an MCP server for interacting with the Modal platform (as opposed to hosting your own) is less clear from my training data.</p>
+<h3>9. llms.txt Availability</h3>
+<p>Modal has an <code>llms.txt</code> file at <code>https://modal.com/llms.txt</code> - this became a common practice in 2024-2025 for AI-friendly documentation discovery. I do not have confirmed details on its exact contents, but Modal is an AI-infrastructure company and was likely an early adopter.</p>
+<h3>10. Multi-tenant Git Support</h3>
+<p>Modal does not have a built-in Git hosting or multi-tenant Git feature. It integrates with Git via standard CI/CD (GitHub Actions, etc.) and you can deploy from a Git repo. There is no native Git server or multi-tenant Git namespace feature analogous to what you'd find in a platform like Gitpod or Coder.</p>
+<h3>11. Serverless Runs</h3>
+<p>Yes, this is Modal's core offering. Functions decorated with <code>@app.function()</code> run serverlessly - scale to zero when not in use, scale out to thousands of parallel containers automatically. Supports:
+- <code>function.remote()</code> for synchronous calls
+- <code>function.spawn()</code> for async/fire-and-forget
+- <code>function.map()</code> for parallel fan-out over iterables
+- <code>function.starmap()</code> for parallel fan-out with multiple args
+- Scheduled runs via <code>@app.function(schedule=modal.Period(hours=1))</code></p>
+<h3>12. Deployments</h3>
+<p>Yes. <code>modal deploy</code> deploys an app persistently (web endpoints stay up, scheduled functions remain active). Contrast with <code>modal run</code> which is ephemeral. Deployed apps get stable URLs. Modal also supports:
+- Web endpoints (<code>@app.function(web=True)</code> or <code>@modal.web_endpoint</code>)
+- ASGI/WSGI apps (FastAPI, Django, etc.) via <code>@app.function(web=True)</code> with <code>asgi_app</code>
+- Secrets management for deployed apps
+- Named deployments with versioning</p>
+<h3>13. Free Tier</h3>
+<p>Modal has a free tier:
+- $30/month in free credits for new users (as of 2024)
+- No credit card required to start
+- Free tier includes CPU and GPU compute credits
+- The free allowance resets monthly for some tiers</p>
+<p>Exact current free tier details may have changed - this is worth verifying at modal.com/pricing.</p>
+<h3>14. Agent Discoverability</h3>
+<p>Modal supports discoverability for AI agents in several ways:
+- Functions can be exposed as web endpoints with stable URLs
+- Modal added support for deploying MCP servers (making functions discoverable to MCP-compatible agents)
+- <code>modal.web_endpoint</code> and ASGI support makes Modal-hosted services callable from agents
+- There is no built-in "agent registry" or discovery mechanism; discoverability is handled at the application layer</p>
+<hr />
+<h2>Important Caveat</h2>
+<p>Both WebSearch and WebFetch tools are blocked in this environment, so I cannot fetch live data from modal.com, their docs, blog posts, or GitHub. All of the above is from my training data (cutoff August 2025). For a feature comparison table, you should verify the following directly:</p>
+<ul>
+<li><strong>modal.com/pricing</strong> - current free tier and pricing</li>
+<li><strong>modal.com/docs</strong> - current feature documentation</li>
+<li><strong>modal.com/llms.txt</strong> - confirm llms.txt exists and its contents</li>
+<li><strong>modal.com/blog</strong> - cold start benchmarks and recent feature announcements</li>
+<li><strong>github.com/modal-labs</strong> - open source tooling and MCP server repos</li>
+</ul>
+<p>To enable live research in this project, you would need to grant permission for the WebSearch and WebFetch tools when prompted.</result>
+<usage><total_tokens>13719</total_tokens><tool_uses>6</tool_uses><duration_ms>49264</duration_ms></usage>
+</task-notification></p></div></a></div>
+<div class="index-item"><a href="page-002.html#msg-2026-04-08T11-33-43-667Z"><div class="index-item-header"><span class="index-item-number">#7</span><time datetime="2026-04-08T11:33:43.667Z" data-timestamp="2026-04-08T11:33:43.667Z">2026-04-08T11:33:43.667Z</time></div><div class="index-item-content"><p><task-notification>
+<task-id>a8ff4972b881f865b</task-id>
+<tool-use-id>toolu_01DDE3iNqkFuuTtYKUXAk9CR</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-jameswhitford-Desktop-feature-comparison/99561459-14c6-472b-a00e-a86872c47fbf/tasks/a8ff4972b881f865b.output</output-file>
+<status>completed</status></p>
+<summary>Agent "Research Vercel sandbox/VM features" completed</summary>
+<p><result>I now have comprehensive data to write the full research report. Here is everything found:</p>
+<hr />
+<h2>Vercel: Sandbox, VM &amp; Compute Features for AI Agent Workloads</h2>
+<p>Research sourced directly from Vercel's official documentation at vercel.com (as of April 2026).</p>
+<hr />
+<h3>1. VM Startup Speed / Cold Start Times</h3>
+<p>Vercel does not publish a specific millisecond figure for cold start times in its documentation. What is documented:</p>
+<ul>
+<li><strong>Archived functions</strong> (those not invoked within 2 weeks for production deployments, or 48 hours for preview deployments) experience a cold start that adds "at least 1 second longer than usual."</li>
+<li><strong>Edge runtime</strong> cold starts are described as near-instant because it runs on V8 isolates without requiring a container or virtual machine.</li>
+<li><strong>Node.js/Fluid compute</strong> cold starts are mitigated through two mechanisms:</li>
+<li><strong>Bytecode caching</strong> (Node.js 20+): Pre-compiles JavaScript bytecode after first execution so subsequent cold starts avoid recompilation. Only active in production environments.</li>
+<li><strong>Pre-warmed instances</strong>: On paid plans in production, Vercel keeps a minimum of one active function instance running, preventing cold starts entirely under normal traffic.</li>
+<li><strong>Fluid compute's optimized concurrency</strong> reuses existing instances for concurrent requests, significantly reducing the rate at which new cold starts occur.</li>
+</ul>
+<p>The docs explicitly say: "By their very nature of being on-demand, serverless applications will always have the notion of cold starts" - but Fluid compute's concurrency model minimizes how often they happen.</p>
+<p><strong>Edge runtime</strong>: Must begin sending a response within 25 seconds; can stream up to 300 seconds total.</p>
+<hr />
+<h3>2. Boot Disk Access</h3>
+<p>No persistent boot disk. Vercel Functions have:
+- A <strong>read-only filesystem</strong> (the deployment bundle).
+- A writable <code>/tmp</code> scratch space of up to <strong>500 MB</strong>.
+- Filesystem state (temp files, memory caches) is preserved when a function instance is reused (warm), but not across cold starts.
+- Bundle size limit: 250 MB (gzip compressed) for most runtimes; 500 MB for Python.</p>
+<p>There is no concept of a persistent, rebootable disk image. The isolation boundary is a <strong>microVM</strong> (for traditional serverless) or a shared process (for Fluid compute).</p>
+<hr />
+<h3>3. Reboot Support</h3>
+<p>Not applicable in the traditional sense. Vercel functions are stateless and ephemeral. There is no reboot mechanism. The closest concepts:</p>
+<ul>
+<li>Functions are <strong>archived</strong> when idle and unarchived (cold-started) on next invocation.</li>
+<li><strong>Instant Rollback</strong> lets you revert to a previous deployment quickly.</li>
+<li><strong>Fluid compute</strong> with the <code>waitUntil</code> API allows background tasks to continue after a response is sent, but there is no "reboot" of a running instance.</li>
+<li><strong>Vercel Workflow</strong> (beta) supports durable workflows that can pause, resume, and survive deployments/crashes through deterministic replay - the closest thing to long-lived stateful compute. Workflow steps can sleep for "minutes or months."</li>
+</ul>
+<hr />
+<h3>4. VM Forking Capability</h3>
+<p>Not supported. Vercel does not expose any forking API for VM instances. The isolation model is:</p>
+<ul>
+<li><strong>Traditional serverless</strong>: Each function invocation gets its own microVM.</li>
+<li><strong>Fluid compute</strong>: Multiple concurrent invocations share a single process/instance (in-function concurrency), but there is no user-controlled forking.</li>
+<li>No snapshotting or cloning of running VM state.</li>
+</ul>
+<hr />
+<h3>5. Full Linux Support</h3>
+<p>Partial, not full. Vercel Functions run in a managed Linux environment but with significant restrictions:</p>
+<ul>
+<li><strong>Node.js runtime</strong>: Full Node.js API coverage, all standard Node.js APIs available.</li>
+<li><strong>Edge runtime</strong>: V8 isolates - NOT a full Linux environment. No filesystem access (not even <code>/tmp</code>), no <code>require()</code>, no native Node.js APIs beyond a short whitelist (<code>async_hooks</code>, <code>events</code>, <code>buffer</code>, <code>assert</code>, <code>util</code>). No <code>eval</code> or dynamic code execution.</li>
+<li>No raw shell access, no arbitrary Linux process execution.</li>
+<li>No WebSocket server support.</li>
+<li>File descriptors limited to 1,024 shared across concurrent executions.</li>
+<li>Vercel notes this is "neither a Node.js nor browser application" for the Edge runtime.</li>
+</ul>
+<p>The Node.js runtime is essentially a Lambda-style environment (AWS Lambda is the underlying infrastructure, as evidenced by the blocked <code>AWS_LAMBDA_*</code> environment variables).</p>
+<hr />
+<h3>6. GPU Support</h3>
+<p><strong>No native GPU support documented.</strong> Vercel's own compute (Vercel Functions, Fluid compute, Edge runtime) does not offer GPU instances.</p>
+<p>For GPU workloads, Vercel's AI integration marketplace lists third-party GPU-enabled providers:
+- <strong>fal</strong>: "A serverless AI inferencing platform for creative processes" (GPU inference via integration)
+- <strong>Together AI</strong>, <strong>Replicate</strong>, <strong>DeepInfra</strong>: Third-party GPU inference services connectable via Vercel Marketplace integrations
+- <strong>Groq</strong>: LPU-based inference</p>
+<p>These are API integrations, not GPUs running inside Vercel's own infrastructure.</p>
+<hr />
+<h3>7. Language Support</h3>
+<p><strong>Official runtimes:</strong>
+| Runtime | Notes |
+|---------|-------|
+| Node.js (JS/TS) | Default. Versions 20.x, 22.x, 24.x (24.x is current default). Full Node.js API coverage. |
+| Bun | Bun runtime support. |
+| Python | HTTP handler. Bundle up to 500 MB. Streaming supported. |
+| Rust | Via <code>vercel_runtime</code> crate. |
+| Go | HTTP handler. |
+| Ruby | HTTP handler. |
+| Wasm | Pre-compiled WebAssembly. |
+| Edge (JS/TS) | V8 isolates. ES modules only. |</p>
+<p><strong>Community runtimes (recommended by Vercel):</strong>
+- Bash (<code>vercel-bash</code>)
+- Deno (<code>vercel-deno</code>)
+- PHP (<code>vercel-php</code>)</p>
+<p>Custom runtimes can be built using the Runtime API.</p>
+<hr />
+<h3>8. MCP Server Availability</h3>
+<p><strong>Strong MCP support - two distinct offerings:</strong></p>
+<p><strong>A. Vercel's own MCP server</strong> (official, remote MCP):
+- URL: <code>https://mcp.vercel.com</code>
+- OAuth-authenticated, implements latest MCP Authorization and Streamable HTTP specs.
+- Provides tools for: searching Vercel docs, managing projects, managing deployments, viewing logs, checking domain availability.
+- Supported clients: Claude Code, Claude.ai/Desktop, ChatGPT, Codex CLI, Cursor, VS Code Copilot, Devin, Raycast, Goose, Windsurf, Gemini Code Assist, Gemini CLI.
+- Install via: <code>npx add-mcp https://mcp.vercel.com</code></p>
+<p><strong>B. Deploy your own MCP servers to Vercel:</strong>
+- Use the <code>mcp-handler</code> npm package with Vercel Functions to host MCP servers.
+- Supports Streamable HTTP transport.
+- Built-in OAuth support via <code>withMcpAuth</code>.
+- Benefits from Fluid compute scaling for irregular MCP usage patterns (long idle times, burst usage).
+- Templates available: Next.js MCP server, Vercel Functions MCP server, xmcp boilerplate.</p>
+<p>Rate limits documented: Integration MCP access token requests: 2/minute (uncached), 200/minute (cached). MCP domain search: 100/minute.</p>
+<hr />
+<h3>9. llms.txt Availability</h3>
+<p><strong>Yes, confirmed.</strong> Vercel provides two machine-readable documentation files:</p>
+<ul>
+<li><code>https://vercel.com/llms.txt</code> - Standard llms.txt</li>
+<li><code>https://vercel.com/docs/llms-full.txt</code> - Full comprehensive documentation optimized for LLMs</li>
+</ul>
+<p>The docs page for this is at <code>/docs/agent-resources/markdown-access</code>. Every documentation page is also accessible as markdown (<code>.md</code> extension). There is a "Copy as Markdown" button on all doc pages.</p>
+<hr />
+<h3>10. Multi-Tenant Git Support</h3>
+<p><strong>Yes, supported with some plan-dependent restrictions.</strong></p>
+<p>Supported Git providers:
+- GitHub (Free, Team, Enterprise Cloud, Enterprise Server via Actions)
+- GitLab (Free, Premium, Ultimate, Enterprise, Self-Managed)
+- Bitbucket (Free, Standard, Premium, Data Center self-hosted via pipelines)
+- Azure DevOps Pipelines</p>
+<p>Multi-tenant specifics:
+- Up to <strong>10 Vercel projects per Git repository</strong> (Hobby) or <strong>60</strong> (Pro).
+- <strong>Hobby teams cannot connect to private repositories owned by GitHub organizations, GitLab groups, or Bitbucket workspaces.</strong> Must upgrade to Pro or make repo public.
+- Pro teams: commit authors must be team members (verified via login connections).
+- Forks of public repos require authorization before deployment (security measure).
+- Custom environments allow branch-specific deployments with their own domains and env vars.
+- Up to 3 regions (Pro) or all 18 regions (Enterprise) for function deployment.
+- Azure DevOps requires the Vercel Deployment Extension (not native webhook-based).</p>
+<hr />
+<h3>11. Serverless Runs</h3>
+<p>Vercel Functions are the core serverless offering:</p>
+<ul>
+<li><strong>Invocations</strong>: 1 million included on Hobby; $0.60 per additional 1M on Pro.</li>
+<li><strong>Scaling</strong>: Auto-scales to 30,000 concurrent executions (Hobby/Pro) or 100,000+ (Enterprise).</li>
+<li><strong>Max duration</strong>: 300s (Hobby, with Fluid compute); up to 800s (Pro/Enterprise, with Fluid compute). Legacy (non-fluid) Hobby: 60s max.</li>
+<li><strong>Memory</strong>: 2 GB / 1 vCPU (Hobby and default); up to 4 GB / 2 vCPUs (Pro/Enterprise).</li>
+<li><strong>Cron jobs</strong>: Up to 100 per project on all plans.</li>
+<li>Pricing: Active CPU billed only during actual execution (not I/O wait). Provisioned memory billed for full instance lifetime.</li>
+<li>Hobby free tier: 4 CPU-hours Active CPU, 360 GB-hours Provisioned Memory, 1M invocations/month.</li>
+</ul>
+<p><strong>Vercel Workflow</strong> (beta, built on Vercel Functions + Queues):
+- Durable, resumable workflows for AI agents.
+- <code>'use workflow'</code> and <code>'use step'</code> TypeScript directives.
+- Supports sleep (pause for days/months with no resource consumption), hooks (wait for external events), human-in-the-loop patterns.
+- Pricing: 50,000 steps free on Hobby; $2.50 per 100,000 steps on-demand. Storage: $0.00069/GB-hour.</p>
+<hr />
+<h3>12. Deployments</h3>
+<ul>
+<li><strong>Methods</strong>: Git push (GitHub/GitLab/Bitbucket/Azure DevOps), Vercel CLI, Deploy Hooks (URL-triggered), Vercel REST API.</li>
+<li><strong>Environments</strong>: Local, Preview (per branch/PR), Production.</li>
+<li><strong>Automatic</strong>: Every push to any branch creates a preview deployment with a unique URL; merges to production branch create production deployments.</li>
+<li><strong>Limits</strong>:</li>
+<li>Hobby: 100 deployments/day, 100/hour, 60/5min, 2,000/week (CLI), 1 concurrent build.</li>
+<li>Pro: 6,000 deployments/day, 450/hour, 120/5min, 12 concurrent builds.</li>
+<li>Enterprise: 24,000 deployments/day, 1,800/hour, 300/5min, custom concurrent builds.</li>
+<li><strong>Build time</strong>: 45 min maximum across all plans.</li>
+<li><strong>Instant Rollback</strong>: Revert to any previous production deployment instantly.</li>
+<li><strong>Rolling Releases</strong>: Gradual rollout to a fraction of users before promoting fully.</li>
+<li><strong>Deployment Protection</strong>: Preview deployments can be password-protected or team-only.</li>
+<li><strong>Functions per deployment</strong>: Hobby: framework-dependent (12 for direct API files); Pro/Enterprise: unlimited.</li>
+</ul>
+<hr />
+<h3>13. Free Tier Details</h3>
+<p><strong>Hobby plan (free, personal use only - no commercial use):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Included</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Projects</td>
+<td>200</td>
+</tr>
+<tr>
+<td>Deployments/day</td>
+<td>100</td>
+</tr>
+<tr>
+<td>Concurrent builds</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Build time/deployment</td>
+<td>45 min</td>
+</tr>
+<tr>
+<td>Static file uploads</td>
+<td>100 MB</td>
+</tr>
+<tr>
+<td>Fast Data Transfer</td>
+<td>100 GB/month</td>
+</tr>
+<tr>
+<td>Fast Origin Transfer</td>
+<td>Up to 10 GB</td>
+</tr>
+<tr>
+<td>Build Execution</td>
+<td>6,000 min/month</td>
+</tr>
+<tr>
+<td>Function Active CPU</td>
+<td>4 CPU-hours/month</td>
+</tr>
+<tr>
+<td>Function Provisioned Memory</td>
+<td>360 GB-hours/month</td>
+</tr>
+<tr>
+<td>Function Invocations</td>
+<td>1 million/month</td>
+</tr>
+<tr>
+<td>Workflow Steps</td>
+<td>First 50,000</td>
+</tr>
+<tr>
+<td>Workflow Storage</td>
+<td>720 GB-hours</td>
+</tr>
+<tr>
+<td>Blob Storage</td>
+<td>5 GB/month</td>
+</tr>
+<tr>
+<td>Edge Config Writes</td>
+<td>250/month</td>
+</tr>
+<tr>
+<td>Domains per project</td>
+<td>50</td>
+</tr>
+<tr>
+<td>Log retention</td>
+<td>Runtime logs: 1 hour</td>
+</tr>
+<tr>
+<td>Regions</td>
+<td>1 (default iad1)</td>
+</tr>
+<tr>
+<td>Max function duration</td>
+<td>300s (with Fluid compute)</td>
+</tr>
+<tr>
+<td>Max function memory</td>
+<td>2 GB / 1 vCPU (non-configurable)</td>
+</tr>
+<tr>
+<td>Cron jobs</td>
+<td>100 per project</td>
+</tr>
+<tr>
+<td>Web Analytics events</td>
+<td>100,000/month</td>
+</tr>
+</tbody>
+</table>
+<p>Notable Hobby restrictions: Cannot connect to private repos in GitHub organizations, cannot use multi-region functions, cannot configure function memory/CPU size, no pre-warmed instances beyond Fluid compute optimizations.</p>
+<hr />
+<h3>14. Agent Discoverability / AI Agent Features</h3>
+<p>Vercel has built substantial AI agent infrastructure:</p>
+<p><strong>Documentation access for AI:</strong>
+- <code>llms.txt</code> and <code>llms-full.txt</code> at <code>vercel.com</code>
+- All docs pages available as <code>.md</code> markdown
+- Vercel MCP server at <code>https://mcp.vercel.com</code> for direct doc search and project management</p>
+<p><strong>Agent Skills (Skills.sh):</strong>
+- Vercel provides installable "skills" for AI coding agents via <code>https://skills.sh</code>
+- Supports 18+ AI agents (Claude Code, Copilot, Cursor, Cline, etc.)
+- Install: <code>npx skills add &amp;lt;owner/repo&amp;gt;</code>
+- Covers framework-specific guidance, deployment workflows, etc.</p>
+<p><strong>CLI Workflows for AI agents:</strong>
+- Pre-written end-to-end CLI workflow guides designed for AI agents
+- Covers: debugging production errors, rolling back deployments, debugging slow functions, deploying from CLI</p>
+<p><strong>Vercel Workflow SDK</strong> (AI agent platform):
+- Durable workflows with pause/resume/replay for multi-step AI agents
+- Human-in-the-loop via hooks
+- Observable via dashboard with built-in logs, metrics, tracing</p>
+<p><strong>AI Model Integrations (Vercel Marketplace):</strong>
+- xAI, Groq, fal, DeepInfra, Perplexity, Replicate, ElevenLabs, LMNT, Together AI, OpenAI
+- Native integrations with billing and provisioning, or connectable third-party accounts
+- Accessible via AI section in Vercel dashboard</p>
+<p><strong>Vercel AI SDK:</strong>
+- Referenced throughout docs; <code>ai-sdk.dev</code> for MCP client initialization and tool calling
+- Used to initialize MCP clients and call MCP server tools</p>
+<p><strong>MCP server hosting:</strong>
+- Deploy custom MCP servers on Vercel Functions
+- OAuth support, Streamable HTTP transport
+- Fluid compute optimized for MCP's irregular usage patterns</p>
+<hr />
+<h3>Summary Table</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Vercel Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cold start times</td>
+<td>Not published as a number; mitigated via bytecode caching + pre-warming (paid plans); archived functions add ~1s</td>
+</tr>
+<tr>
+<td>Boot disk access</td>
+<td>Read-only FS + /tmp (500 MB writable); no persistent disk</td>
+</tr>
+<tr>
+<td>Reboot support</td>
+<td>Not supported; Workflow SDK enables durable pause/resume</td>
+</tr>
+<tr>
+<td>VM forking</td>
+<td>Not supported</td>
+</tr>
+<tr>
+<td>Full Linux support</td>
+<td>Partial (managed Lambda-style env); Node.js runtime has full Node.js API; Edge is V8-only</td>
+</tr>
+<tr>
+<td>GPU support</td>
+<td>Not native; via third-party integrations (fal, Replicate, Together AI, etc.)</td>
+</tr>
+<tr>
+<td>Language support</td>
+<td>Node.js (JS/TS), Python, Go, Ruby, Rust, Bun, Wasm, Edge (JS/TS); community: PHP, Deno, Bash</td>
+</tr>
+<tr>
+<td>MCP server availability</td>
+<td>Yes - official <code>mcp.vercel.com</code> + host your own on Vercel Functions</td>
+</tr>
+<tr>
+<td>llms.txt</td>
+<td>Yes - <code>vercel.com/llms.txt</code> and <code>vercel.com/docs/llms-full.txt</code></td>
+</tr>
+<tr>
+<td>Multi-tenant Git</td>
+<td>Yes - GitHub, GitLab, Bitbucket, Azure DevOps (Hobby restricted to personal repos)</td>
+</tr>
+<tr>
+<td>Serverless runs</td>
+<td>Yes - core product; 1M invocations free/month</td>
+</tr>
+<tr>
+<td>Deployments</td>
+<td>Yes - Git, CLI, hooks, REST API; preview per branch, production on merge</td>
+</tr>
+<tr>
+<td>Free tier</td>
+<td>Hobby plan; 1M invocations, 4 CPU-hours, 360 GB-hours memory, 100 GB bandwidth</td>
+</tr>
+<tr>
+<td>Agent discoverability</td>
+<td>Strong - MCP server, llms.txt, Skills.sh, Workflow SDK, AI marketplace integrations</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p>Sources:
+- <a href="https://vercel.com/docs/functions">Vercel Functions Overview</a>
+- <a href="https://vercel.com/docs/functions/runtimes">Runtimes</a>
+- <a href="https://vercel.com/docs/functions/runtimes/edge">Edge Runtime</a>
+- <a href="https://vercel.com/docs/functions/runtimes/node-js">Node.js Runtime</a>
+- <a href="https://vercel.com/docs/functions/runtimes/node-js/node-js-versions">Node.js Versions</a>
+- <a href="https://vercel.com/docs/fluid-compute">Fluid Compute</a>
+- <a href="https://vercel.com/docs/fundamentals/what-is-compute">What is Compute?</a>
+- <a href="https://vercel.com/docs/functions/limitations">Function Limits</a>
+- <a href="https://vercel.com/docs/functions/configuring-functions/memory">Memory/CPU Configuration</a>
+- <a href="https://vercel.com/docs/functions/usage-and-pricing">Fluid Compute Pricing</a>
+- <a href="https://vercel.com/docs/limits">Platform Limits</a>
+- <a href="https://vercel.com/docs/deployments">Deployments Overview</a>
+- <a href="https://vercel.com/docs/git">Git Integration</a>
+- <a href="https://vercel.com/docs/mcp">MCP Overview</a>
+- <a href="https://vercel.com/docs/mcp/deploy-mcp-servers-to-vercel">Deploy MCP Servers to Vercel</a>
+- <a href="https://vercel.com/docs/agent-resources/vercel-mcp">Vercel MCP Server</a>
+- <a href="https://vercel.com/docs/agent-resources">Agent Resources</a>
+- <a href="https://vercel.com/docs/agent-resources/integrations-for-models">Build with AI on Vercel</a>
+- <a href="https://vercel.com/docs/workflow">Vercel Workflow</a></result>
+<usage><total_tokens>75469</total_tokens><tool_uses>29</tool_uses><duration_ms>162530</duration_ms></usage>
+</task-notification></p></div></a><div class="index-item-stats">
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>The Vercel agent came back with richer detail. The matrix I already posted is accurate, but here's an updated, more precise version with the additional Vercel data and a few refinements:</p>
+<hr />
+<h2>Feature Comparison Matrix: Freestyle vs E2B vs Modal vs Daytona vs Blaxel vs Vercel</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th><strong>Freestyle</strong></th>
+<th><strong>E2B</strong></th>
+<th><strong>Modal</strong></th>
+<th><strong>Daytona</strong></th>
+<th><strong>Blaxel</strong></th>
+<th><strong>Vercel Sandbox</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>VM Startup / Cold Start</strong></td>
+<td>~500ms median (320ms median, targeting 200ms); restored memory snapshot</td>
+<td>~150–200ms (Firecracker microVM snapshot restore)</td>
+<td>2–4s general containers; ~10s GPU with snapshotting (was ~2min)</td>
+<td>Sub-90ms; some configs 27ms (container-based)</td>
+<td>~25ms resume from standby; scales to zero after 5s idle</td>
+<td>Not published as a number; archived functions add ~1s; pre-warmed on paid plans</td>
+</tr>
+<tr>
+<td><strong>Boot Disk Access</strong></td>
+<td>Full root disk; full KVM/nested virt support</td>
+<td>Full disk inside Firecracker microVM</td>
+<td>Ephemeral container disk + persistent <code>modal.Volume</code> mounts</td>
+<td>Full disk; OCI container images (Debian-based)</td>
+<td>Full filesystem (root FS in memory); volumes for persistence</td>
+<td>Read-only deploy bundle + writable <code>/tmp</code> (500 MB); no persistent disk</td>
+</tr>
+<tr>
+<td><strong>Reboot Support</strong></td>
+<td>Pause/resume via memory snapshots; no explicit reboot primitive</td>
+<td>Sessions up to 24h (Pro); stop/restart pattern</td>
+<td>Re-invoke function; no reboot primitive; <code>keep_warm</code> for warm containers</td>
+<td>Auto-stop/archive lifecycle; no reboot</td>
+<td>Persistent standby; full state restore via snapshots</td>
+<td>Not supported; Workflow SDK enables durable pause/resume across steps</td>
+</tr>
+<tr>
+<td><strong>VM Forking</strong></td>
+<td>Yes — live fork in ~400ms pause; O(1) copy-on-write; original continues unpaused</td>
+<td>In development (not yet GA)</td>
+<td>No — scale-out via parallel container spawning only</td>
+<td>No</td>
+<td>Snapshot-based volume cloning; not live VM fork</td>
+<td>No — snapshots restore fresh state; running processes not preserved</td>
+</tr>
+<tr>
+<td><strong>Full Linux</strong></td>
+<td>Yes — full hardware virtualization (not microVMs), real root, systemd, eBPF, nested virt, multi-user</td>
+<td>Yes — Firecracker microVM, full Linux</td>
+<td>Yes — Linux containers, full root, arbitrary packages</td>
+<td>Yes — OCI containers, Debian-based</td>
+<td>Yes — microVMs, full filesystem/shell/process access</td>
+<td>Partial — Node.js runtime is Lambda-style; Edge runtime is V8 isolates only (no shell, no <code>/tmp</code>)</td>
+</tr>
+<tr>
+<td><strong>GPU Support</strong></td>
+<td>No</td>
+<td>No (CPU-only; roadmap)</td>
+<td>Yes — T4, L4, A100 (40/80GB), H100, H200, B200; per-second billing</td>
+<td>Yes — 12GB GDDR6 (8/16/32-core variants)</td>
+<td>No</td>
+<td>No native GPU; third-party via integrations (fal, Replicate, Together AI)</td>
+</tr>
+<tr>
+<td><strong>Language Support</strong></td>
+<td>Node.js, Python (uv), Deno, Bun, Ruby, Java (Corretto)</td>
+<td>Python, JavaScript/TypeScript</td>
+<td>Python-first SDK; any language in containers; JS/TS &amp; Go for management</td>
+<td>Python, TypeScript, JavaScript (native execution runtimes)</td>
+<td>Python, Node.js, Rust, shell</td>
+<td>Node.js (JS/TS), Python, Go, Ruby, Rust, Bun, Wasm, Edge (JS/TS); community: PHP, Deno, Bash</td>
+</tr>
+<tr>
+<td><strong>MCP Server</strong></td>
+<td>Yes — Freestyle VM MCP (file ops, exec, search/replace); Freestyle Cloud MCP in development</td>
+<td>Yes — open-source MCP server (Apache-2.0)</td>
+<td>Yes — host/scale MCP servers on Modal; not a first-class managed product</td>
+<td>Yes — dedicated MCP server; integrates with Claude, Cursor, Windsurf</td>
+<td>Yes — built-in MCP server in every sandbox; HTTP stream compatible</td>
+<td>Yes — official <code>mcp.vercel.com</code> (OAuth, platform mgmt) + host your own on Vercel Functions</td>
+</tr>
+<tr>
+<td><strong>llms.txt</strong></td>
+<td>Yes — <code>freestyle.sh/llms.txt</code></td>
+<td>Yes — <code>e2b.mintlify.app/llms.txt</code></td>
+<td>Yes — <code>modal.com/llms-full.txt</code></td>
+<td>Yes — <code>daytona.io/docs/llms.txt</code> + <code>llms-full.txt</code></td>
+<td>Yes — <code>docs.blaxel.ai/llms.txt</code></td>
+<td>Yes — <code>vercel.com/llms.txt</code> + <code>vercel.com/docs/llms-full.txt</code>; all docs pages as <code>.md</code></td>
+</tr>
+<tr>
+<td><strong>Multi-tenant Git</strong></td>
+<td>Yes — built-in git hosting; only sandbox provider with this; designed for coding agent platforms</td>
+<td>Git ops inside sandboxes; no hosted git service</td>
+<td>No built-in git; integrates with external repos via CI/CD</td>
+<td>Git clone + credential handling inside sandboxes; no hosted git</td>
+<td>No dedicated git hosting</td>
+<td>Yes — GitHub, GitLab, Bitbucket, Azure DevOps; Hobby restricted to personal repos</td>
+</tr>
+<tr>
+<td><strong>Serverless Runs</strong></td>
+<td>Yes — "Freestyle Runs" product; 500 runs/mo free</td>
+<td>Ephemeral sandboxes (pay-per-second, serverless-style)</td>
+<td>Yes — core product; <code>@app.function()</code>, map/spawn, scale to zero</td>
+<td>Yes — ephemeral sandboxes; serverless-style</td>
+<td>Yes — natively serverless; scale to zero after 5s</td>
+<td>Yes — 1M invocations/mo free; up to 300s duration (Hobby), 800s (Pro)</td>
+</tr>
+<tr>
+<td><strong>Deployments</strong></td>
+<td>Yes — Git-triggered auto-deploys, preview deployments, managed domains</td>
+<td>No — sandbox execution only</td>
+<td>Yes — <code>modal deploy</code>; web endpoints, ASGI/WSGI, crons</td>
+<td>Yes — customer-managed compute; open-source self-hostable</td>
+<td>Yes — agents, MCP servers, batch jobs; multi-region (Global Agentics Network)</td>
+<td>Yes — core product; Git push, CLI, hooks, REST API; preview per branch, prod on merge</td>
+</tr>
+<tr>
+<td><strong>Free Tier</strong></td>
+<td>No credit card; 10 concurrent VMs, 500 repos, 500 runs/mo, 20 vCPU-hr/day</td>
+<td>$100 one-time credit; 20 concurrent sandboxes, 1-hr sessions, 10 GiB storage</td>
+<td>$30/month credits; 100 containers, 10 GPU concurrency</td>
+<td>$200 credits; no credit card; startup program up to $50k</td>
+<td>$200 credits; 10 concurrent sandboxes; no credit card</td>
+<td>Hobby: 1M invocations, 4 CPU-hr, 360 GB-hr memory, 100 GB bandwidth/mo</td>
+</tr>
+<tr>
+<td><strong>Agent Discoverability</strong></td>
+<td>Typed SDK; MCP <code>tools/list</code> protocol</td>
+<td>MCP <code>tools/list</code>; open-source SDK</td>
+<td>Function registry via SDK; MCP server hosting</td>
+<td>MCP <code>tools/list</code>; integrates with Claude/Cursor/Windsurf</td>
+<td>Dynamic <code>tools/list</code> via built-in MCP; 360° observability; Global Agentics Network</td>
+<td>Strong — <code>mcp.vercel.com</code>, <code>llms.txt</code>, Skills.sh, Workflow SDK, AI marketplace (18 models)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>Quick-reference takeaways</h3>
+<table>
+<thead>
+<tr>
+<th>Who wins at...</th>
+<th>Platform</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fastest cold start</td>
+<td>Daytona (27–90ms) / Blaxel (25ms standby)</td>
+</tr>
+<tr>
+<td>Live VM forking</td>
+<td><strong>Freestyle</strong> (only one with production-grade live fork)</td>
+</tr>
+<tr>
+<td>GPU workloads</td>
+<td><strong>Modal</strong> (most GPU SKUs) / Daytona (GPU available)</td>
+</tr>
+<tr>
+<td>Built-in git hosting</td>
+<td><strong>Freestyle</strong> (only sandbox provider with multi-tenant git)</td>
+</tr>
+<tr>
+<td>MCP-native agent infra</td>
+<td><strong>Blaxel</strong> (MCP in every sandbox)</td>
+</tr>
+<tr>
+<td>Deployment platform</td>
+<td><strong>Vercel</strong> (strongest CI/CD, preview deploys, Git integration)</td>
+</tr>
+<tr>
+<td>Agent discoverability</td>
+<td><strong>Vercel</strong> (Skills.sh, Workflow SDK, marketplace)</td>
+</tr>
+<tr>
+<td>Open-source / self-host</td>
+<td><strong>Daytona</strong> (Apache-2.0, self-hostable)</td>
+</tr>
+<tr>
+<td>Free tier value</td>
+<td>Daytona ($200 credits) / Blaxel ($200 credits) / Modal ($30/mo recurring)</td>
+</tr>
+</tbody>
+</table>
+<p>Sources:
+- <a href="https://docs.freestyle.sh/v2/vms/about">Freestyle VMs Docs</a> · <a href="https://www.freestyle.sh/pricing">Pricing</a> · <a href="https://news.ycombinator.com/item?id=47663147">Launch HN</a>
+- <a href="https://e2b.dev/docs">E2B Docs</a> · <a href="https://e2b.dev/pricing">Pricing</a>
+- <a href="https://modal.com/pricing">Modal Pricing</a> · <a href="https://modal.com/blog/mistral-3">GPU snapshotting blog</a>
+- <a href="https://www.daytona.io/docs/en/sandboxes/">Daytona Sandboxes</a> · <a href="https://www.daytona.io/docs/en/mcp/">MCP Server</a> · <a href="https://www.daytona.io/pricing">Pricing</a>
+- <a href="https://blaxel.ai/sandbox">Blaxel Sandbox</a> · <a href="https://docs.blaxel.ai/Overview">Docs</a> · <a href="https://blaxel.ai/pricing">Pricing</a>
+- <a href="https://vercel.com/docs/vercel-sandbox/pricing">Vercel Sandbox Pricing</a> · <a href="https://vercel.com/docs/mcp">MCP</a> · <a href="https://vercel.com/docs/agent-resources">Agent Resources</a>
+- <a href="https://betterstack.com/community/comparisons/best-sandbox-runners/">Better Stack: 11 Best Sandbox Runners 2026</a></p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-002.html#msg-2026-04-08T11-34-41-534Z"><div class="index-item-header"><span class="index-item-number">#8</span><time datetime="2026-04-08T11:34:41.534Z" data-timestamp="2026-04-08T11:34:41.534Z">2026-04-08T11:34:41.534Z</time></div><div class="index-item-content"><p><local-command-caveat>Caveat: The messages below were generated by the user while running local commands. DO NOT respond to these messages or otherwise consider them in your response unless the user explicitly asks you to.</local-command-caveat></p></div></a></div>
+<div class="index-item"><a href="page-002.html#msg-2026-04-08T11-34-41-534Z"><div class="index-item-header"><span class="index-item-number">#9</span><time datetime="2026-04-08T11:34:41.534Z" data-timestamp="2026-04-08T11:34:41.534Z">2026-04-08T11:34:41.534Z</time></div><div class="index-item-content"><p><command-name>/copy</command-name>
+            <command-message>copy</command-message>
+            <command-args></command-args></p></div></a></div>
+<div class="index-item"><a href="page-002.html#msg-2026-04-08T11-34-41-534Z"><div class="index-item-header"><span class="index-item-number">#10</span><time datetime="2026-04-08T11:34:41.534Z" data-timestamp="2026-04-08T11:34:41.534Z">2026-04-08T11:34:41.534Z</time></div><div class="index-item-content"><p><local-command-stdout>Copied to clipboard (7363 characters, 47 lines)
+Also written to /tmp/claude/response.md</local-command-stdout></p></div></a></div>
+<div class="index-item"><a href="page-003.html#msg-2026-04-08T11-34-58-508Z"><div class="index-item-header"><span class="index-item-number">#11</span><time datetime="2026-04-08T11:34:58.508Z" data-timestamp="2026-04-08T11:34:58.508Z">2026-04-08T11:34:58.508Z</time></div><div class="index-item-content"><p>return the matrix as a table</p></div></a><div class="index-item-stats">
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Here it is as a single markdown table:</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Freestyle</th>
+<th>E2B</th>
+<th>Modal</th>
+<th>Daytona</th>
+<th>Blaxel</th>
+<th>Vercel Sandbox</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>VM Startup / Cold Start</strong></td>
+<td>~500ms median (320ms p50, targeting 200ms); memory snapshot</td>
+<td>~150–200ms Firecracker snapshot restore</td>
+<td>2–4s containers; ~10s GPU w/ snapshotting</td>
+<td>Sub-90ms; 27ms in some configs</td>
+<td>~25ms resume from standby; scales to zero after 5s</td>
+<td>Not published; archived fns add ~1s; pre-warmed on paid plans</td>
+</tr>
+<tr>
+<td><strong>Boot Disk Access</strong></td>
+<td>Full root disk; KVM/nested virt</td>
+<td>Full disk inside Firecracker microVM</td>
+<td>Ephemeral container disk + persistent <code>modal.Volume</code></td>
+<td>Full disk; OCI/Debian containers</td>
+<td>Full filesystem (root FS in memory); volumes for persistence</td>
+<td>Read-only deploy bundle + writable <code>/tmp</code> (500 MB); no persistent disk</td>
+</tr>
+<tr>
+<td><strong>Reboot Support</strong></td>
+<td>Pause/resume via memory snapshot; no reboot primitive</td>
+<td>Stop/restart; sessions up to 24h (Pro)</td>
+<td>Re-invoke function; <code>keep_warm</code> for warm containers</td>
+<td>Auto-stop/archive lifecycle; no reboot</td>
+<td>Full state restore via persistent snapshots</td>
+<td>Not supported; Workflow SDK for durable pause/resume</td>
+</tr>
+<tr>
+<td><strong>VM Forking</strong></td>
+<td>Yes — live fork ~400ms pause; O(1) copy-on-write; original continues</td>
+<td>In development (not GA)</td>
+<td>No</td>
+<td>No</td>
+<td>Snapshot-based volume cloning; not live VM fork</td>
+<td>No — snapshots restore fresh state; processes restart</td>
+</tr>
+<tr>
+<td><strong>Full Linux</strong></td>
+<td>Yes — full hardware virt, real root, systemd, eBPF, nested virt</td>
+<td>Yes — Firecracker microVM, full Linux</td>
+<td>Yes — Linux containers, full root, arbitrary packages</td>
+<td>Yes — OCI containers, Debian-based</td>
+<td>Yes — microVMs, full filesystem/shell/process access</td>
+<td>Partial — Node.js is Lambda-style; Edge is V8 isolates only</td>
+</tr>
+<tr>
+<td><strong>GPU Support</strong></td>
+<td>No</td>
+<td>No (roadmap)</td>
+<td>Yes — T4, L4, A100 (40/80GB), H100, H200, B200</td>
+<td>Yes — 12GB GDDR6 (8/16/32-core)</td>
+<td>No</td>
+<td>No native; third-party via fal, Replicate, Together AI</td>
+</tr>
+<tr>
+<td><strong>Language Support</strong></td>
+<td>Node.js, Python (uv), Deno, Bun, Ruby, Java (Corretto)</td>
+<td>Python, JavaScript/TypeScript</td>
+<td>Python-first; any language in containers</td>
+<td>Python, TypeScript, JavaScript</td>
+<td>Python, Node.js, Rust, shell</td>
+<td>Node.js/TS, Python, Go, Ruby, Rust, Bun, Wasm; community: PHP, Deno, Bash</td>
+</tr>
+<tr>
+<td><strong>MCP Server</strong></td>
+<td>Yes — VM MCP (file ops, exec, search/replace); Cloud MCP in dev</td>
+<td>Yes — open-source (Apache-2.0)</td>
+<td>Yes — host/scale MCP servers on Modal</td>
+<td>Yes — dedicated MCP server; Claude, Cursor, Windsurf</td>
+<td>Yes — built-in MCP in every sandbox; HTTP stream compatible</td>
+<td>Yes — official <code>mcp.vercel.com</code> + host your own on Functions</td>
+</tr>
+<tr>
+<td><strong>llms.txt</strong></td>
+<td>Yes — <code>freestyle.sh/llms.txt</code></td>
+<td>Yes — <code>e2b.mintlify.app/llms.txt</code></td>
+<td>Yes — <code>modal.com/llms-full.txt</code></td>
+<td>Yes — <code>daytona.io/docs/llms.txt</code> + <code>llms-full.txt</code></td>
+<td>Yes — <code>docs.blaxel.ai/llms.txt</code></td>
+<td>Yes — <code>vercel.com/llms.txt</code> + <code>vercel.com/docs/llms-full.txt</code></td>
+</tr>
+<tr>
+<td><strong>Multi-tenant Git</strong></td>
+<td>Yes — built-in hosted git; only sandbox provider with this</td>
+<td>Git ops inside sandboxes; no hosted service</td>
+<td>No built-in git</td>
+<td>Git clone + credentials inside sandboxes; no hosted service</td>
+<td>No dedicated git hosting</td>
+<td>Yes — GitHub, GitLab, Bitbucket, Azure DevOps; Hobby: personal repos only</td>
+</tr>
+<tr>
+<td><strong>Serverless Runs</strong></td>
+<td>Yes — Freestyle Runs; 500 runs/mo free</td>
+<td>Ephemeral sandboxes, pay-per-second</td>
+<td>Yes — core product; map/spawn, scale to zero</td>
+<td>Yes — ephemeral sandboxes, serverless-style</td>
+<td>Yes — natively serverless; scale to zero after 5s</td>
+<td>Yes — 1M invocations/mo free; up to 300s (Hobby) / 800s (Pro)</td>
+</tr>
+<tr>
+<td><strong>Deployments</strong></td>
+<td>Yes — Git-triggered, preview deployments, managed domains</td>
+<td>No — sandbox execution only</td>
+<td>Yes — <code>modal deploy</code>; web endpoints, ASGI/WSGI, crons</td>
+<td>Yes — customer-managed compute; self-hostable OSS</td>
+<td>Yes — agents, MCP servers, batch jobs; multi-region</td>
+<td>Yes — core product; Git push, CLI, hooks, REST API; preview + prod</td>
+</tr>
+<tr>
+<td><strong>Free Tier</strong></td>
+<td>No credit card; 10 concurrent VMs, 500 repos, 500 runs/mo</td>
+<td>$100 one-time credit; 20 concurrent sandboxes, 1-hr sessions</td>
+<td>$30/mo credits; 100 containers, 10 GPU concurrency</td>
+<td>$200 credits; no credit card; up to $50k via startup program</td>
+<td>$200 credits; 10 concurrent sandboxes; no credit card</td>
+<td>1M invocations, 4 CPU-hr, 360 GB-hr memory, 100 GB bandwidth/mo</td>
+</tr>
+<tr>
+<td><strong>Agent Discoverability</strong></td>
+<td>Typed SDK; MCP <code>tools/list</code></td>
+<td>MCP <code>tools/list</code>; open-source SDK</td>
+<td>Function registry via SDK; MCP server hosting</td>
+<td>MCP <code>tools/list</code>; Claude/Cursor/Windsurf integrations</td>
+<td>Dynamic <code>tools/list</code> via built-in MCP; 360° observability; Global Agentics Network</td>
+<td>Strong — <code>mcp.vercel.com</code>, Skills.sh, Workflow SDK, AI marketplace</td>
+</tr>
+</tbody>
+</table></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+        
+
+<div class="pagination">
+<span class="current">Index</span>
+<span class="disabled">&larr; Prev</span>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-001.html">Next &rarr;</a>
+</div>
+
+
+        <dialog id="search-modal">
+            <div class="search-modal-header">
+                <input type="text" id="modal-search-input" placeholder="Search..." aria-label="Search transcripts">
+                <button id="modal-search-btn" type="button" aria-label="Search">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+                </button>
+                <button id="modal-close-btn" type="button" aria-label="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                </button>
+            </div>
+            <div id="search-status"></div>
+            <div id="search-results"></div>
+        </dialog>
+        <script>
+(function() {
+    var totalPages = 3;
+    var searchBox = document.getElementById('search-box');
+    var searchInput = document.getElementById('search-input');
+    var searchBtn = document.getElementById('search-btn');
+    var modal = document.getElementById('search-modal');
+    var modalInput = document.getElementById('modal-search-input');
+    var modalSearchBtn = document.getElementById('modal-search-btn');
+    var modalCloseBtn = document.getElementById('modal-close-btn');
+    var searchStatus = document.getElementById('search-status');
+    var searchResults = document.getElementById('search-results');
+
+    if (!searchBox || !modal) return;
+
+    // Hide search on file:// protocol (doesn't work due to CORS restrictions)
+    if (window.location.protocol === 'file:') return;
+
+    // Show search box (progressive enhancement)
+    searchBox.style.display = 'flex';
+
+    // Gist preview support - detect if we're on gisthost.github.io or gistpreview.github.io
+    var hostname = window.location.hostname;
+    var isGistPreview = hostname === 'gisthost.github.io' || hostname === 'gistpreview.github.io';
+    var gistId = null;
+    var gistOwner = null;
+    var gistInfoLoaded = false;
+
+    if (isGistPreview) {
+        // Extract gist ID from URL query string like ?78a436a8a9e7a2e603738b8193b95410/index.html
+        var queryMatch = window.location.search.match(/^\?([a-f0-9]+)/i);
+        if (queryMatch) {
+            gistId = queryMatch[1];
+        }
+    }
+
+    async function loadGistInfo() {
+        if (!isGistPreview || !gistId || gistInfoLoaded) return;
+        try {
+            var response = await fetch('https://api.github.com/gists/' + gistId);
+            if (response.ok) {
+                var info = await response.json();
+                gistOwner = info.owner.login;
+                gistInfoLoaded = true;
+            }
+        } catch (e) {
+            console.error('Failed to load gist info:', e);
+        }
+    }
+
+    function getPageFetchUrl(pageFile) {
+        if (isGistPreview && gistOwner && gistId) {
+            // Use raw gist URL for fetching content
+            return 'https://gist.githubusercontent.com/' + gistOwner + '/' + gistId + '/raw/' + pageFile;
+        }
+        return pageFile;
+    }
+
+    function getPageLinkUrl(pageFile) {
+        if (isGistPreview && gistId) {
+            // Use gistpreview URL format for navigation links
+            return '?' + gistId + '/' + pageFile;
+        }
+        return pageFile;
+    }
+
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function escapeRegex(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function openModal(query) {
+        modalInput.value = query || '';
+        searchResults.innerHTML = '';
+        searchStatus.textContent = '';
+        modal.showModal();
+        modalInput.focus();
+        if (query) {
+            performSearch(query);
+        }
+    }
+
+    function closeModal() {
+        modal.close();
+        // Update URL to remove search fragment, preserving path and query string
+        if (window.location.hash.startsWith('#search=')) {
+            history.replaceState(null, '', window.location.pathname + window.location.search);
+        }
+    }
+
+    function updateUrlHash(query) {
+        if (query) {
+            // Preserve path and query string when adding hash
+            history.replaceState(null, '', window.location.pathname + window.location.search + '#search=' + encodeURIComponent(query));
+        }
+    }
+
+    function highlightTextNodes(element, searchTerm) {
+        var walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+        var nodesToReplace = [];
+
+        while (walker.nextNode()) {
+            var node = walker.currentNode;
+            if (node.nodeValue.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1) {
+                nodesToReplace.push(node);
+            }
+        }
+
+        nodesToReplace.forEach(function(node) {
+            var text = node.nodeValue;
+            var regex = new RegExp('(' + escapeRegex(searchTerm) + ')', 'gi');
+            var parts = text.split(regex);
+            if (parts.length > 1) {
+                var span = document.createElement('span');
+                parts.forEach(function(part) {
+                    if (part.toLowerCase() === searchTerm.toLowerCase()) {
+                        var mark = document.createElement('mark');
+                        mark.textContent = part;
+                        span.appendChild(mark);
+                    } else {
+                        span.appendChild(document.createTextNode(part));
+                    }
+                });
+                node.parentNode.replaceChild(span, node);
+            }
+        });
+    }
+
+    function fixInternalLinks(element, pageFile) {
+        // Update all internal anchor links to include the page file
+        var links = element.querySelectorAll('a[href^="#"]');
+        links.forEach(function(link) {
+            var href = link.getAttribute('href');
+            link.setAttribute('href', pageFile + href);
+        });
+    }
+
+    function processPage(pageFile, html, query) {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(html, 'text/html');
+        var resultsFromPage = 0;
+
+        // Find all message blocks
+        var messages = doc.querySelectorAll('.message');
+        messages.forEach(function(msg) {
+            var text = msg.textContent || '';
+            if (text.toLowerCase().indexOf(query.toLowerCase()) !== -1) {
+                resultsFromPage++;
+
+                // Get the message ID for linking
+                var msgId = msg.id || '';
+                var pageLinkUrl = getPageLinkUrl(pageFile);
+                var link = pageLinkUrl + (msgId ? '#' + msgId : '');
+
+                // Clone the message HTML and highlight matches
+                var clone = msg.cloneNode(true);
+                // Fix internal links to include the page file
+                fixInternalLinks(clone, pageLinkUrl);
+                highlightTextNodes(clone, query);
+
+                var resultDiv = document.createElement('div');
+                resultDiv.className = 'search-result';
+                resultDiv.innerHTML = '<a href="' + link + '">' +
+                    '<div class="search-result-page">' + escapeHtml(pageFile) + '</div>' +
+                    '<div class="search-result-content">' + clone.innerHTML + '</div>' +
+                    '</a>';
+                searchResults.appendChild(resultDiv);
+            }
+        });
+
+        return resultsFromPage;
+    }
+
+    async function performSearch(query) {
+        if (!query.trim()) {
+            searchStatus.textContent = 'Enter a search term';
+            return;
+        }
+
+        updateUrlHash(query);
+        searchResults.innerHTML = '';
+        searchStatus.textContent = 'Searching...';
+
+        // Load gist info if on gistpreview (needed for constructing URLs)
+        if (isGistPreview && !gistInfoLoaded) {
+            searchStatus.textContent = 'Loading gist info...';
+            await loadGistInfo();
+            if (!gistOwner) {
+                searchStatus.textContent = 'Failed to load gist info. Search unavailable.';
+                return;
+            }
+        }
+
+        var resultsFound = 0;
+        var pagesSearched = 0;
+
+        // Build list of pages to fetch
+        var pagesToFetch = [];
+        for (var i = 1; i <= totalPages; i++) {
+            pagesToFetch.push('page-' + String(i).padStart(3, '0') + '.html');
+        }
+
+        searchStatus.textContent = 'Searching...';
+
+        // Process pages in batches of 3, but show results immediately as each completes
+        var batchSize = 3;
+        for (var i = 0; i < pagesToFetch.length; i += batchSize) {
+            var batch = pagesToFetch.slice(i, i + batchSize);
+
+            // Create promises that process results immediately when each fetch completes
+            var promises = batch.map(function(pageFile) {
+                return fetch(getPageFetchUrl(pageFile))
+                    .then(function(response) {
+                        if (!response.ok) throw new Error('Failed to fetch');
+                        return response.text();
+                    })
+                    .then(function(html) {
+                        // Process and display results immediately
+                        var count = processPage(pageFile, html, query);
+                        resultsFound += count;
+                        pagesSearched++;
+                        searchStatus.textContent = 'Found ' + resultsFound + ' result(s) in ' + pagesSearched + '/' + totalPages + ' pages...';
+                    })
+                    .catch(function() {
+                        pagesSearched++;
+                        searchStatus.textContent = 'Found ' + resultsFound + ' result(s) in ' + pagesSearched + '/' + totalPages + ' pages...';
+                    });
+            });
+
+            // Wait for this batch to complete before starting the next
+            await Promise.all(promises);
+        }
+
+        searchStatus.textContent = 'Found ' + resultsFound + ' result(s) in ' + totalPages + ' pages';
+    }
+
+    // Event listeners
+    searchBtn.addEventListener('click', function() {
+        openModal(searchInput.value);
+    });
+
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            openModal(searchInput.value);
+        }
+    });
+
+    modalSearchBtn.addEventListener('click', function() {
+        performSearch(modalInput.value);
+    });
+
+    modalInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            performSearch(modalInput.value);
+        }
+    });
+
+    modalCloseBtn.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+
+    // Check for #search= in URL on page load
+    if (window.location.hash.startsWith('#search=')) {
+        var query = decodeURIComponent(window.location.hash.substring(8));
+        if (query) {
+            searchInput.value = query;
+            openModal(query);
+        }
+    }
+})();
+        </script>
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>
