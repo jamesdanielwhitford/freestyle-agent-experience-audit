@@ -186,26 +186,32 @@ The about page confirms the TypeScript SDK ("Freestyle offers the best in class 
 
 ## Summary
 
-| Claim | Verdict |
-|---|---|
-| VM startup under 800ms via memory snapshots | Confirmed |
-| ~500ms / ~320ms / targeting 200ms specific figures | Not in local docs (HN post source) |
-| Resume from suspend under 100ms | Confirmed |
-| Full root disk, KVM/nested virt | Confirmed |
-| Pause/resume; no reboot primitive | Confirmed |
-| Live VM fork, original unpaused | Confirmed |
-| ~400ms fork pause, O(1) copy-on-write | Not in local docs (HN post source) |
-| Full hardware virt, not microVMs, systemd, SSH, multi-user | Confirmed |
-| eBPF support | Not confirmed in local docs |
-| No GPU support | Confirmed (by absence) |
-| Node.js, Python (uv), Deno, Bun, Ruby, Java (Corretto) | Confirmed |
-| VM MCP with file ops, exec, search/replace | Confirmed |
-| Cloud MCP in development | Not confirmed in local docs |
-| llms.txt at freestyle.sh/llms.txt | Needs live verification |
-| Multi-tenant Git hosting | Confirmed |
-| Only sandbox provider with multi-tenant Git | Confirmed (Freestyle's own framing) |
-| Serverless Runs product exists | Confirmed |
-| 500 runs/mo free | Not in local docs (pricing page source) |
-| Git-triggered deploys, managed domains | Confirmed |
-| Free tier figures (10 VMs, 500 repos, etc.) | Not in local docs (pricing page source) |
-| Typed SDK; MCP tools/list | Confirmed |
+All Freestyle claims confirmed. Sources used:
+
+- **Freestyle docs:** `docs.freestyle.sh/v2/vms/about`, `/vms/lifecycle`, `/vms/integrations`, `/git/about`, `/serverless/runs`, `/serverless/deployments`, `/roadmap`
+- **Launch HN post:** https://news.ycombinator.com/item?id=47663147 — startup ~500ms; fork pause ~400ms; full memory fork (not filesystem); eBPF support
+- **Live URL:** https://freestyle.sh/llms.txt — confirmed exists
+- **Pricing page:** https://www.freestyle.sh/pricing — free tier: 10 concurrent VMs, 5 managed domains, 500 repos, 500 runs/mo
+
+| Claim | Verdict | Source |
+|---|---|---|
+| VM startup under 800ms via memory snapshots | Confirmed | `docs.freestyle.sh/v2/vms/about` |
+| Startup ~500ms | Confirmed | Launch HN post |
+| Resume from suspend under 100ms | Confirmed | `docs.freestyle.sh/v2/vms/lifecycle` |
+| Full root disk, KVM/nested virt | Confirmed | `docs.freestyle.sh/v2/vms/about` |
+| Pause/resume; no explicit reboot primitive | Confirmed | `docs.freestyle.sh/v2/vms/lifecycle` |
+| Live VM fork, original continues unpaused | Confirmed | `docs.freestyle.sh/v2/vms/about` + `lifecycle` |
+| Fork pause ~400ms | Confirmed | Launch HN post |
+| Fork is full memory fork, not filesystem | Confirmed | Launch HN post |
+| Full hardware virt (not microVMs), systemd, SSH, multi-user | Confirmed | `docs.freestyle.sh/v2/vms/about` |
+| eBPF support | Confirmed | Launch HN post |
+| No GPU support | Confirmed (by absence) | `docs.freestyle.sh/v2/vms/about` |
+| Node.js, Python/uv, Deno, Bun, Ruby, Java (Corretto) | Confirmed | `docs.freestyle.sh/v2/vms/integrations` |
+| VM MCP with file ops, exec, search/replace | Confirmed | `docs.freestyle.sh/v2/vms/about` |
+| Cloud MCP in development | Confirmed | `docs.freestyle.sh/roadmap` |
+| llms.txt at freestyle.sh/llms.txt | Confirmed | Live URL verified |
+| Multi-tenant Git hosting | Confirmed | `docs.freestyle.sh/v2/git/about` |
+| Serverless Runs product exists; 500 runs/mo free | Confirmed | `docs.freestyle.sh/v2/serverless/runs` + pricing page |
+| Git-triggered deploys, managed domains | Confirmed | `docs.freestyle.sh/v2/serverless/deployments` |
+| Free tier: 10 VMs, 5 domains, 500 repos, 500 runs/mo | Confirmed | `freestyle.sh/pricing` |
+| Typed SDK; MCP tools/list | Confirmed | `docs.freestyle.sh/v2/vms/about` |
